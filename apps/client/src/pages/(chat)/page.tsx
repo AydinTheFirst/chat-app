@@ -1,4 +1,4 @@
-import { Link } from "@heroui/react";
+import { Image, Link } from "@heroui/react";
 import { LucideCode2 } from "lucide-react";
 
 export default function Page() {
@@ -6,7 +6,7 @@ export default function Page() {
     <div className='container flex h-full flex-col items-center justify-between py-10'>
       <div></div>
       <div className='flex flex-col gap-3 text-center'>
-        <img
+        <Image
           alt='Group Chat'
           className='h-96 w-full'
           src='/assets/undraw_group-chat.svg'

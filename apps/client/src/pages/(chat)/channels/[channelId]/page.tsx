@@ -1,39 +1,106 @@
-import type { Channel } from "server-types";
-
-import { Button, Card, CardBody, Textarea, User } from "@heroui/react";
+import { Button, Card, CardBody, Textarea } from "@heroui/react";
 import {
   LucideEllipsisVertical,
-  LucidePlus,
-  LucideSearch,
   LucideSend,
   LucideSticker
 } from "lucide-react";
+import React, { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useLoaderData } from "react-router";
 
-import { http } from "~/lib/http";
+import type { ChannelWithUsers, MessageWithAuthor } from "~/types";
+
+import EmojiPicker from "~/components/emoji-picker";
+import { useAuth } from "~/hooks/use-auth";
+import { handleError, http } from "~/lib/http";
+import { useSocket } from "~/lib/use-socket";
 
 import type { Route } from "./+types/page";
 
+import ChannelInfoModal from "./channel-info";
+import CreateInvite from "./create-invite";
 import MessageBubble from "./message-bubble";
 
 export const clientLoader = async ({ params }: Route.ClientLoaderArgs) => {
   const { channelId } = params;
 
   if (!channelId) {
-    throw new Error("Channel ID is required");
+    throw new Response("Channel ID is required", { status: 400 });
   }
 
-  const { data: channel } = await http.get<Channel>(`/channels/${channelId}`);
+  const { data: channel } = await http.get<ChannelWithUsers>(
+    `/channels/${channelId}`
+  );
 
   if (!channel) {
-    throw new Error(`Channel with ID ${channelId} not found`);
+    throw new Response("Channel not found", { status: 404 });
   }
 
-  return { channel };
+  const { data: messages } = await http.get<MessageWithAuthor[]>(
+    `/channels/${channelId}/messages`
+  );
+
+  return { channel, messages };
 };
 
 export default function Page() {
-  const { channel } = useLoaderData<typeof clientLoader>();
+  const [messages, setMessages] = React.useState<MessageWithAuthor[]>([]);
+  const { channel, messages: _messages } = useLoaderData<typeof clientLoader>();
+  const socket = useSocket();
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const { user: currentUser } = useAuth();
+
+  useEffect(() => {
+    setMessages(_messages);
+  }, [_messages]);
+
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.emit("join", channel.id);
+
+    socket.on("joined", (channelId: string) => {
+      console.log(`Joined channel: ${channelId}`);
+    });
+
+    socket.on("left", (channelId: string) => {
+      console.log(`Left channel: ${channelId}`);
+    });
+
+    socket.on("messageCreate", (message: MessageWithAuthor) => {
+      if (message.channelId !== channel.id) return;
+
+      setMessages((prev) => [...prev, message]);
+
+      if (currentUser?.id !== message.authorId) {
+        const audio = new Audio("/assets/notification.mp3");
+        audio.play();
+      }
+    });
+
+    socket.on("messageUpdate", (updatedMessage: MessageWithAuthor) => {
+      if (updatedMessage.channelId !== channel.id) return;
+
+      setMessages((prev) =>
+        prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
+      );
+    });
+
+    socket.on("messageDelete", (deletedMessage: MessageWithAuthor) => {
+      setMessages((prev) => prev.filter((m) => m.id !== deletedMessage.id));
+    });
+
+    return () => {
+      socket.off("messageCreate");
+      socket.off("joined");
+      socket.emit("leave", channel.id);
+    };
+  }, [socket, channel, currentUser]);
 
   return (
     <div className='flex h-screen flex-col'>
@@ -45,21 +112,10 @@ export default function Page() {
         <CardBody>
           <div className='flex justify-between'>
             <div>
-              <User
-                avatarProps={{
-                  src: `https://api.dicebear.com/9.x/bottts/svg?seed=${channel.name}`
-                }}
-                description='none'
-                name={channel.name}
-              />
+              <ChannelInfoModal channel={channel} />
             </div>
             <div className='flex justify-end gap-3'>
-              <Button
-                isIconOnly
-                variant='light'
-              >
-                <LucideSearch />
-              </Button>
+              {channel.type === "GROUP" && <CreateInvite />}
               <Button
                 isIconOnly
                 variant='light'
@@ -71,135 +127,89 @@ export default function Page() {
         </CardBody>
       </Card>
 
-      <main className='flex-1 overflow-y-auto'>
+      <main className='flex-1 overflow-x-hidden overflow-y-auto'>
         <div className='container grid gap-3 py-10'>
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/44.jpg'
-            fromUser={false}
-            message='Hey Sup?'
-            userName='Aylin'
-          />
+          {messages.map((m) => (
+            <MessageBubble
+              key={m.id}
+              message={m}
+            />
+          ))}
 
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message='Not much, you?'
-            userName='Emre'
-          />
+          <div ref={bottomRef} />
 
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/46.jpg'
-            fromUser={false}
-            message='Just working on a project. You?'
-            userName='Aylin'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message='Same here, lots of coding lately.'
-            userName='Emre'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/44.jpg'
-            fromUser={false}
-            message='What are you building?'
-            userName='Aylin'
-          />
-
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message='A chat app for fun!'
-            userName='Emre'
-          />
-
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/46.jpg'
-            fromUser={false}
-            message='That sounds cool. Using React?'
-            userName='Aylin'
-          />
-
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message='Yep, with TypeScript and Tailwind.'
-            userName='Emre'
-          />
-
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message='Always happy to get feedback if you have any!'
-            userName='Emre'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/44.jpg'
-            fromUser={false}
-            message="Sure! I'll check it out and let you know."
-            userName='Aylin'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/46.jpg'
-            fromUser={false}
-            message='Are you planning to open source it?'
-            userName='Aylin'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message="Maybe, once it's a bit more polished."
-            userName='Emre'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/44.jpg'
-            fromUser={false}
-            message="Let us know, we'd love to contribute!"
-            userName='Aylin'
-          />
-
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/44.jpg'
-            fromUser={false}
-            message='Nice stack! Need any help?'
-            userName='Aylin'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message='Maybe later, thanks! 😊'
-            userName='Emre'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/women/46.jpg'
-            fromUser={false}
-            message='No problem. Good luck!'
-            userName='Aylin'
-          />
-          <MessageBubble
-            avatarUrl='https://randomuser.me/api/portraits/men/45.jpg'
-            fromUser={true}
-            message='Thanks! Talk soon.'
-            userName='Emre'
-          />
+          {messages.length === 0 && (
+            <div className='text-center text-gray-500'>
+              No messages yet. Start the conversation!
+            </div>
+          )}
         </div>
       </main>
 
+      <MessageInput />
+    </div>
+  );
+}
+
+function MessageInput() {
+  const [message, setMessage] = useState<string>("");
+  const { channel } = useLoaderData<typeof clientLoader>();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (message.length === 0) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("content", message);
+    formData.append("channelId", channel.id);
+
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      await http.post("/messages", data);
+      setMessage("");
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      const form = e.currentTarget.closest("form");
+      console.log("Submitting form:", form);
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+    }
+  };
+
+  return (
+    <div className='relative'>
+      {showEmojiPicker && (
+        <div className='absolute bottom-20 left-4 z-10'>
+          <EmojiPicker
+            onSelect={(emoji) => setMessage((prev) => prev + emoji)}
+          />
+        </div>
+      )}
       <Card
         className='dark:bg-[#1D1F1F]'
         radius='none'
         shadow='none'
       >
         <CardBody>
-          <div className='flex items-center gap-1'>
+          <form
+            className='flex items-center gap-1'
+            onSubmit={handleSubmit}
+          >
             <Button
               isIconOnly
-              variant='light'
-            >
-              <LucidePlus />
-            </Button>
-            <Button
-              isIconOnly
+              onPress={() => setShowEmojiPicker((prev) => !prev)}
               variant='light'
             >
               <LucideSticker />
@@ -207,16 +217,21 @@ export default function Page() {
             <Textarea
               fullWidth
               minRows={1}
+              name='content'
+              onKeyDown={handleKeyDown}
+              onValueChange={setMessage}
               placeholder='Type your message...'
+              value={message}
               variant='bordered'
             />
             <Button
               isIconOnly
+              type='submit'
               variant='light'
             >
               <LucideSend />
             </Button>
-          </div>
+          </form>
         </CardBody>
       </Card>
     </div>

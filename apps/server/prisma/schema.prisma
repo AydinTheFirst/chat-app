@@ -14,18 +14,21 @@ datasource db {
 }
 
 model User {
-  id          String @id @default(uuid())
-  username    String @unique @default(cuid())
-  email       String @unique
+  id          String  @id @default(uuid())
+  username    String  @unique @default(cuid())
+  email       String  @unique
   displayName String
   password    String
+  avatarUrl   String?
 
   roles UserRole[] @default([USER])
 
-  messages      Message[]
-  tokens        Token[]
-  channels      Channel[] @relation("ChannelUsers")
-  ownedChannels Channel[] @relation("ChannelOwner")
+  messages               Message[]
+  tokens                 Token[]
+  channels               Channel[]    @relation("ChannelUsers")
+  ownedChannels          Channel[]    @relation("ChannelOwner")
+  friendRequestsSent     Friendship[] @relation("FriendRequestsSent")
+  friendRequestsReceived Friendship[] @relation("FriendRequestsReceived")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -55,7 +58,7 @@ model Message {
   author   User   @relation(fields: [authorId], references: [id])
 
   channelId String
-  channel   Channel @relation(fields: [channelId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
   editedAt  DateTime?
   createdAt DateTime  @default(now())
@@ -69,16 +72,64 @@ model Channel {
   name        String
   description String?
 
-  messages Message[]
-  users    User[]    @relation("ChannelUsers")
+  type     ChannelType @default(GROUP)
+  isPublic Boolean     @default(false)
 
-  ownerId String
-  owner   User   @relation("ChannelOwner", fields: [ownerId], references: [id])
+  messages    Message[]
+  inviteLinks InviteLink[]
+  users       User[]       @relation("ChannelUsers")
+
+  ownerId String?
+  owner   User?   @relation("ChannelOwner", fields: [ownerId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("channels")
+}
+
+model Friendship {
+  id     String              @id @default(uuid())
+  status FriendRequestStatus @default(PENDING)
+
+  fromId String
+  from   User   @relation("FriendRequestsSent", fields: [fromId], references: [id])
+
+  toId String
+  to   User   @relation("FriendRequestsReceived", fields: [toId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([fromId, toId])
+  @@map("friendships")
+}
+
+model InviteLink {
+  id   String @id @default(uuid())
+  code String @unique
+
+  channelId String
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  maxUses Int?
+  uses    Int  @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum ChannelType {
+  DM
+  GROUP
 }
 
 enum UserRole {

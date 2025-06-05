@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { IsOptional, IsString } from 'class-validator';
+import { $Enums, Prisma } from '@prisma/client';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 
 import { BaseQueryDto } from '~/common/dto';
 
@@ -8,8 +8,16 @@ export class CreateChannelDto implements Partial<Prisma.ChannelCreateInput> {
   @IsString()
   description?: string;
 
+  @IsBoolean()
+  @IsOptional()
+  isPublic?: boolean;
+
   @IsString()
   name: string;
+
+  @IsEnum($Enums.ChannelType)
+  @IsOptional()
+  type?: $Enums.ChannelType;
 
   @IsOptional()
   @IsString({ each: true })

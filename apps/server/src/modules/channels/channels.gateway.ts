@@ -1,6 +1,9 @@
+import { Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -8,10 +11,12 @@ import {
 import { Message } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ namespace: 'channels' })
-export class ChannelsGateway {
+@WebSocketGateway({ cors: true })
+export class ChannelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
+
+  private logger = new Logger(ChannelsGateway.name);
 
   emitMessageCreate(message: Message) {
     this.server.to(message.channelId).emit('messageCreate', message);
@@ -23,6 +28,14 @@ export class ChannelsGateway {
 
   emitMessageUpdate(message: Message) {
     this.server.to(message.channelId).emit('messageUpdate', message);
+  }
+
+  handleConnection(client: Socket) {
+    this.logger.log(`Client connected: ${client.id}`);
+  }
+
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('join')

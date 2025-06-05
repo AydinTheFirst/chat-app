@@ -10,6 +10,7 @@ import {
   useDisclosure
 } from "@heroui/react";
 import { LucideMessageSquarePlus } from "lucide-react";
+import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
 import { StyledButton } from "~/components/styled-button";
@@ -17,6 +18,8 @@ import { handleError, http } from "~/lib/http";
 
 export default function CreateChannel() {
   const { isOpen, onClose, onOpen, onOpenChange } = useDisclosure();
+  const revalidator = useRevalidator();
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -24,9 +27,11 @@ export default function CreateChannel() {
       data: Record<string, unknown> = Object.fromEntries(formData.entries());
 
     try {
-      await http.post("/channels", data);
+      const { data: channel } = await http.post("/channels", data);
       toast.success("Channel created successfully!");
       onClose();
+      revalidator.revalidate();
+      navigate(`/channels/${channel.id}`);
     } catch (error) {
       handleError(error);
     }

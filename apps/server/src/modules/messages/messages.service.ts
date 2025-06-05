@@ -37,6 +37,15 @@ export class MessagesService extends QueryService<Message> {
         },
         content: createMessageDto.content,
       },
+      include: {
+        author: {
+          select: {
+            displayName: true,
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
 
     this.channelsGateway.emitMessageCreate(message);
@@ -74,6 +83,15 @@ export class MessagesService extends QueryService<Message> {
     await this.findOne(id, userId);
 
     const message = await this.prisma.message.delete({
+      include: {
+        author: {
+          select: {
+            displayName: true,
+            id: true,
+            username: true,
+          },
+        },
+      },
       where: { id },
     });
 
@@ -89,6 +107,15 @@ export class MessagesService extends QueryService<Message> {
       data: {
         editedAt: new Date(),
         ...updateMessageDto,
+      },
+      include: {
+        author: {
+          select: {
+            displayName: true,
+            id: true,
+            username: true,
+          },
+        },
       },
       where: { id },
     });

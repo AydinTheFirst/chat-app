@@ -14,6 +14,14 @@ A simple chat application built with React and NestJS.
 - **Backend**: NestJS, TypeScript, WebSockets
 - **Database**: PostgreSQL, Prisma
 
+## TODO
+- [ ] Add unit tests for frontend and backend
+- [ ] Advanced error handling
+- [ ] Add user profile editing
+- [ ] Mobile responsiveness
+- [ ] Implement message search functionality
+- [ ] Add notifications for new messages
+
 
 ### Contributing
 If you want to contribute to this project, feel free to open issues or submit pull requests. Contributions are welcome!

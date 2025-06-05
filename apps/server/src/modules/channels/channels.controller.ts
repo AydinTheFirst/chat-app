@@ -26,9 +26,19 @@ export class ChannelsController {
     return this.channelsService.create(createChannelDto, userId);
   }
 
+  @Post('dm/:targetUserId')
+  createDMChannel(@Param('targetUserId') targetUserId: string, @GetUser('id') userId: string) {
+    return this.channelsService.createDMChannel(userId, targetUserId);
+  }
+
   @Get()
   findAll(@Query() query: QueryChannelDto, @GetUser('id') userId: string) {
     return this.channelsService.findAll(query, userId);
+  }
+
+  @Get('dm')
+  findAllDMChannels(@GetUser('id') userId: string) {
+    return this.channelsService.findAllDMChannels(userId);
   }
 
   @Get(':id/messages')
@@ -39,6 +49,20 @@ export class ChannelsController {
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.channelsService.findOne(id, userId);
+  }
+
+  @Delete(':id/kick/:userId')
+  kickUser(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @GetUser('id') requesterId: string,
+  ) {
+    return this.channelsService.kickUserFromChannel(id, userId, requesterId);
+  }
+
+  @Delete(':id/leave')
+  leaveChannel(@Param('id') id: string, @GetUser('id') userId: string) {
+    return this.channelsService.leaveChannel(id, userId);
   }
 
   @Delete(':id')
