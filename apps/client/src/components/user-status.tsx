@@ -1,7 +1,7 @@
 import { cn } from "@heroui/react";
 import { useEffect, useState } from "react";
 
-import { useSocket } from "~/hooks/use-socket";
+import { useDictoly } from "~/hooks/use-dictoly";
 
 type UserStatus = "idle" | "offline" | "online";
 
@@ -10,24 +10,22 @@ interface UserStatusProps {
 }
 
 export default function UserStatus({ userId }: UserStatusProps) {
-  const { socket } = useSocket();
+  const { dictolyClient } = useDictoly();
   const [status, setStatus] = useState<UserStatus>("offline");
 
   useEffect(() => {
-    if (!socket) return;
+    dictolyClient.ws.emit("getStatus", userId);
 
-    socket.emit("getStatus", userId);
-
-    socket.on("userStatus", (data: { status: UserStatus; userId: string }) => {
+    dictolyClient.ws.on("userStatus", (data) => {
       if (data.userId === userId) {
         setStatus(data.status);
       }
     });
 
     return () => {
-      socket.off("userStatus");
+      dictolyClient.ws.off("userStatus");
     };
-  }, [socket, userId]);
+  }, [dictolyClient, userId]);
 
   const indicatorColor = {
     idle: "bg-yellow-500",

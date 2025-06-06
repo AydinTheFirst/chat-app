@@ -4,7 +4,6 @@ import { Outlet, useLocation } from "react-router";
 
 import { AuthProvider } from "~/context/auth-context";
 import { SidebarProvider } from "~/context/sidebar-context";
-import { SocketProvider } from "~/context/socket-context";
 import { useSidebar } from "~/hooks/use-sidebar";
 import { useDevice } from "~/hooks/use-viewport";
 import { dictoly } from "~/lib/dictoly";
@@ -21,13 +20,11 @@ export const clientLoader = async () => {
 export default function Layout() {
   return (
     <AuthProvider>
-      <SocketProvider>
-        <SidebarProvider>
-          <SidebarLayout>
-            <Outlet />
-          </SidebarLayout>
-        </SidebarProvider>
-      </SocketProvider>
+      <SidebarProvider>
+        <SidebarLayout>
+          <Outlet />
+        </SidebarLayout>
+      </SidebarProvider>
     </AuthProvider>
   );
 }

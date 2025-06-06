@@ -3,7 +3,7 @@ import type { User } from "dictoly.js";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "~/hooks/use-auth";
-import { useSocket } from "~/hooks/use-socket";
+import { useDictoly } from "~/hooks/use-dictoly";
 
 interface TypingIndicatorProps {
   channelId: string;
@@ -16,7 +16,7 @@ interface TypingPayload {
 
 export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
   const [typingUsers, setTypingUsers] = useState<User[]>([]);
-  const { socket } = useSocket();
+  const { dictolyClient } = useDictoly();
   const { user: currentUser } = useAuth();
 
   const addUserTyping = (user: User) => {
@@ -31,9 +31,7 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
   };
 
   useEffect(() => {
-    if (!socket) return;
-
-    socket.on("startTyping", (payload: TypingPayload) => {
+    dictolyClient.ws.on("startTyping", (payload: TypingPayload) => {
       if (payload.user.id === currentUser.id) return;
 
       if (payload.channelId === channelId) {
@@ -41,7 +39,7 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
       }
     });
 
-    socket.on("stopTyping", (payload: TypingPayload) => {
+    dictolyClient.ws.on("stopTyping", (payload: TypingPayload) => {
       if (payload.user.id === currentUser.id) return;
 
       if (payload.channelId === channelId) {
@@ -50,10 +48,10 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
     });
 
     return () => {
-      socket.off("startTyping");
-      socket.off("stopTyping");
+      dictolyClient.ws.off("startTyping");
+      dictolyClient.ws.off("stopTyping");
     };
-  }, [socket, channelId, currentUser]);
+  }, [dictolyClient, channelId, currentUser]);
 
   if (typingUsers.length === 0) {
     return;

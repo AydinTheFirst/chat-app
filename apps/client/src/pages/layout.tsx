@@ -3,8 +3,10 @@ import { Outlet, useNavigation } from "react-router";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
 
+import { DictolyProvider } from "~/context/dictoly-context";
 import { fetcher, handleError } from "~/lib/http";
 import { Providers } from "~/pages/provider";
+
 export default function Layout() {
   const navigation = useNavigation();
 
@@ -25,7 +27,9 @@ export default function Layout() {
           isIndeterminate
           size='sm'
         />
-        <Outlet />
+        <DictolyProvider>
+          <Outlet />
+        </DictolyProvider>
         <Toaster richColors />
       </SWRConfig>
     </Providers>

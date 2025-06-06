@@ -1,4 +1,4 @@
-# ChatApp 
+# Dictoly
 A simple chat application built with React and NestJS.
 
 <img src="https://github.com/AydinTheFirst/chat-app/blob/main/assets/screeen_shoot.png" alt="ChatApp Screenshot" width="600">

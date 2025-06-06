@@ -18,7 +18,7 @@ import { useLoaderData } from "react-router";
 import EmojiPicker from "~/components/emoji-picker";
 import TypingIndicator from "~/components/typing-indicator";
 import { useAuth } from "~/hooks/use-auth";
-import { useSocket } from "~/hooks/use-socket";
+import { useDictoly } from "~/hooks/use-dictoly";
 import { dictoly } from "~/lib/dictoly";
 import { handleError, http } from "~/lib/http";
 
@@ -50,7 +50,7 @@ export const clientLoader = async ({ params }: Route.ClientLoaderArgs) => {
 export default function Page() {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const { channel, messages: _messages } = useLoaderData<typeof clientLoader>();
-  const { socket } = useSocket();
+  const { dictolyClient } = useDictoly();
   const bottomRef = useRef<HTMLDivElement>(null);
   const { user: currentUser } = useAuth();
 
@@ -65,11 +65,11 @@ export default function Page() {
   }, [messages]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!dictolyClient) return;
 
-    socket.emit("join", channel.id);
+    dictolyClient.ws.emit("join", channel.id);
 
-    socket.on("messageCreate", (message: Message) => {
+    dictolyClient.ws.on("messageCreate", (message) => {
       if (message.channelId !== channel.id) return;
 
       setMessages((prev) => [...prev, message]);
@@ -80,7 +80,7 @@ export default function Page() {
       }
     });
 
-    socket.on("messageUpdate", (updatedMessage: Message) => {
+    dictolyClient.ws.on("messageUpdate", (updatedMessage: Message) => {
       if (updatedMessage.channelId !== channel.id) return;
 
       setMessages((prev) =>
@@ -88,17 +88,17 @@ export default function Page() {
       );
     });
 
-    socket.on("messageDelete", (deletedMessage: Message) => {
+    dictolyClient.ws.on("messageDelete", (deletedMessage: Message) => {
       setMessages((prev) => prev.filter((m) => m.id !== deletedMessage.id));
     });
 
     return () => {
-      socket.off("messageCreate");
-      socket.off("messageUpdate");
-      socket.off("messageDelete");
-      socket.emit("leave", channel.id);
+      dictolyClient.ws.off("messageCreate");
+      dictolyClient.ws.off("messageUpdate");
+      dictolyClient.ws.off("messageDelete");
+      dictolyClient.ws.emit("leave", channel.id);
     };
-  }, [socket, channel, currentUser]);
+  }, [dictolyClient, channel, currentUser]);
 
   return (
     <div className='flex h-screen flex-col'>
@@ -151,15 +151,15 @@ function MessageInput() {
   const [message, setMessage] = useState<string>("");
   const { channel } = useLoaderData<typeof clientLoader>();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const { socket } = useSocket();
+  const { dictolyClient } = useDictoly();
   const [lastEvent, setLastEvent] = useState<string>("");
 
   useEffect(() => {
     const event = message.length > 0 ? "startTyping" : "stopTyping";
     if (lastEvent === event) return;
     setLastEvent(event);
-    socket.emit(event, { channelId: channel.id });
-  }, [socket, message, channel, lastEvent]);
+    dictoly.ws.emit(event, { channelId: channel.id });
+  }, [dictolyClient, message, channel, lastEvent]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
