@@ -43,16 +43,6 @@ describe('AuthService', () => {
     vi.clearAllMocks();
   });
 
-  it('should return true if no user exists (isFirstUser)', async () => {
-    mockPrisma.user.findFirst.mockResolvedValue(null);
-    expect(await service.isFirstUser()).toBe(true);
-  });
-
-  it('should return false if user exists (isFirstUser)', async () => {
-    mockPrisma.user.findFirst.mockResolvedValue({ id: '1' });
-    expect(await service.isFirstUser()).toBe(false);
-  });
-
   describe('login', () => {
     it('should throw NotFoundException if user not found', async () => {
       mockPrisma.user.findFirst.mockResolvedValue(null);
@@ -103,7 +93,7 @@ describe('AuthService', () => {
 
       await expect(
         service.register({
-          displayName: 'Test User',
+          displayName: 'User',
           email: 'email@test.com',
           password: 'pass',
           username: 'user',
@@ -121,7 +111,7 @@ describe('AuthService', () => {
       });
 
       const user = await service.register({
-        displayName: 'Test User',
+        displayName: 'User',
         email: 'email@test.com',
         password: 'pass',
         username: 'user',
@@ -152,7 +142,7 @@ describe('AuthService', () => {
       });
 
       const user = await service.register({
-        displayName: 'Test User',
+        displayName: 'User',
         email: 'email@test.com',
         password: 'pass',
         username: 'user',

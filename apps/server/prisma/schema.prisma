@@ -14,14 +14,14 @@ datasource db {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  username    String  @unique @default(cuid())
-  email       String  @unique
-  displayName String
-  password    String
-  avatarUrl   String?
+  id       String @id @default(uuid())
+  username String @unique @default(cuid())
+  email    String @unique
+  password String
 
   roles UserRole[] @default([USER])
+
+  profile Profile?
 
   messages               Message[]
   tokens                 Token[]
@@ -34,6 +34,23 @@ model User {
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Profile {
+  id          String  @id @default(uuid())
+  displayName String
+  bio         String?
+  avatarUrl   String?
+  bannerUrl   String?
+  websiteUrl  String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
 }
 
 model Token {
@@ -58,7 +75,7 @@ model Message {
   author   User   @relation(fields: [authorId], references: [id])
 
   channelId String
-  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channel   Channel @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
 
   editedAt  DateTime?
   createdAt DateTime  @default(now())
@@ -75,7 +92,7 @@ model Channel {
   type     ChannelType @default(GROUP)
   isPublic Boolean     @default(false)
 
-  messages    Message[]
+  messages    Message[]    @relation("ChannelMessages")
   inviteLinks InviteLink[]
   users       User[]       @relation("ChannelUsers")
 

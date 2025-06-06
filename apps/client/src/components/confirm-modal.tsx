@@ -1,3 +1,5 @@
+import type React from "react";
+
 import {
   Button,
   Modal,
@@ -11,12 +13,12 @@ import {
 import { StyledButton } from "./styled-button";
 
 interface ConfirmModalProps extends ReturnType<typeof useDisclosure> {
-  message: string;
-  onYes: () => void;
+  message: React.ReactNode;
+  onConfirm: () => void;
 }
 
 export default function ConfirmModal(props: ConfirmModalProps) {
-  const { isOpen, message, onClose, onOpenChange, onYes } = props;
+  const { isOpen, message, onClose, onConfirm, onOpenChange } = props;
 
   return (
     <Modal
@@ -34,16 +36,16 @@ export default function ConfirmModal(props: ConfirmModalProps) {
             onPress={onClose}
             variant='light'
           >
-            Close
+            Cancel
           </Button>
           <StyledButton
             color='primary'
             onPress={() => {
-              onYes();
+              onConfirm();
               onClose();
             }}
           >
-            Yes
+            Confirm
           </StyledButton>
         </ModalFooter>
       </ModalContent>

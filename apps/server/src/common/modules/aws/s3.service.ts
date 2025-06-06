@@ -61,7 +61,7 @@ export class S3Service implements OnModuleInit {
   }
 
   async uploadFile(file: Express.Multer.File) {
-    const key = crypto.randomUUID();
+    const key = crypto.randomBytes(16).toString('hex');
 
     await this.s3.putObject({
       Body: file.buffer,

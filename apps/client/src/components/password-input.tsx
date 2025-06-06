@@ -1,10 +1,8 @@
-import { Button } from "@heroui/react";
+import { Button, Input, type InputProps } from "@heroui/react";
 import { LucideEye, LucideEyeOff } from "lucide-react";
 import React from "react";
 
-import { StyledInput, type StyledInputProps } from "./styled-input";
-
-export default function PasswordInput(props: StyledInputProps) {
+export default function PasswordInput(props: InputProps) {
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
 
   const Icon = isPasswordVisible ? LucideEye : LucideEyeOff;
@@ -21,7 +19,7 @@ export default function PasswordInput(props: StyledInputProps) {
   );
 
   return (
-    <StyledInput
+    <Input
       {...props}
       endContent={endContent}
       type={isPasswordVisible ? "text" : "password"}

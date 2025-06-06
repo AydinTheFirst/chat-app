@@ -15,7 +15,7 @@ A simple chat application built with React and NestJS.
 - **Database**: PostgreSQL, Prisma
 
 ## TODO
-- [ ] Add unit tests for frontend and backend
+- [+] Add unit tests for frontend and backend
 - [ ] Advanced error handling
 - [ ] Add user profile editing
 - [ ] Mobile responsiveness

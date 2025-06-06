@@ -6,11 +6,9 @@ import { CreateFriendRequestDto, UpdateFriendRequestDto } from './friends.dto';
 
 @Injectable()
 export class FriendsService {
-  userSelect: Prisma.UserSelect = {
-    avatarUrl: true,
-    displayName: true,
-    id: true,
-    username: true,
+  friendshipInclude: Prisma.FriendshipInclude = {
+    from: { select: { id: true, profile: true, username: true } },
+    to: { select: { id: true, profile: true, username: true } },
   };
 
   constructor(private prisma: PrismaService) {}
@@ -72,10 +70,7 @@ export class FriendsService {
 
   async findAll(userId: string) {
     const requests = await this.prisma.friendship.findMany({
-      include: {
-        from: { select: this.userSelect },
-        to: { select: this.userSelect },
-      },
+      include: this.friendshipInclude,
       where: {
         OR: [{ fromId: userId }, { toId: userId }],
         status: 'ACCEPTED',
@@ -87,10 +82,7 @@ export class FriendsService {
 
   async findOne(id: string, userId: string) {
     const friend = await this.prisma.friendship.findFirst({
-      include: {
-        from: { select: this.userSelect },
-        to: { select: this.userSelect },
-      },
+      include: this.friendshipInclude,
       where: {
         id,
         OR: [{ fromId: userId }, { toId: userId }],
@@ -106,10 +98,7 @@ export class FriendsService {
 
   async findPendingRequests(userId: string) {
     const pendingRequests = await this.prisma.friendship.findMany({
-      include: {
-        from: { select: this.userSelect },
-        to: { select: this.userSelect },
-      },
+      include: this.friendshipInclude,
       where: {
         status: 'PENDING',
         toId: userId,

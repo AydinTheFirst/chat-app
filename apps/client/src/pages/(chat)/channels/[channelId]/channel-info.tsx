@@ -1,4 +1,4 @@
-import type { User } from "server-types";
+import type { Channel, User } from "dictoly.js";
 
 import {
   Button,
@@ -13,20 +13,19 @@ import { LucideUserX2 } from "lucide-react";
 import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
-import type { ChannelWithUsers } from "~/types";
-
 import ConfirmModal from "~/components/confirm-modal";
-import { UserCard } from "~/components/user-card";
+import UserCard from "~/components/user-card";
+import { UserComponent } from "~/components/user-component";
 import { useAuth } from "~/hooks/use-auth";
 import { handleError, http } from "~/lib/http";
 import { getChannelInfo } from "~/lib/utils";
 
 interface ChannelInfoModalProps {
-  channel: ChannelWithUsers;
+  channel: Channel;
 }
 
 interface ChannelUserProps {
-  channel: ChannelWithUsers;
+  channel: Channel;
   user: User;
 }
 
@@ -40,7 +39,7 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
 
   const { user: currentUser } = useAuth();
 
-  const channelInfo = getChannelInfo(channel, currentUser as User);
+  const channelInfo = getChannelInfo(channel, currentUser);
 
   const handleLeave = async () => {
     try {
@@ -67,18 +66,31 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
   };
 
   const isOwner = channel.ownerId === currentUser?.id;
+  const isDM = channel.type === "DM";
+
+  if (!channelInfo) {
+    return <p>Channel not found or you do not have permission to view it.</p>;
+  }
 
   return (
     <>
-      <UserCard
-        avatarProps={{
-          src: channelInfo.avatar
-        }}
-        description={channelInfo.description}
-        isFocusable
-        name={channelInfo.displayName}
+      <button
+        className='cursor-pointer'
         onClick={onOpen}
-      />
+      >
+        {channelInfo.isDM ? (
+          <UserCard user={channelInfo.user ?? currentUser} />
+        ) : (
+          <UserComponent
+            avatarProps={{
+              name: channelInfo.name,
+              src: channelInfo.icon ?? undefined
+            }}
+            description={channelInfo.description}
+            name={channelInfo.name}
+          />
+        )}
+      </button>
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -86,20 +98,18 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
       >
         <ModalContent>
           <ModalHeader className='flex flex-col gap-1'>
-            <h2>{channelInfo.displayName}</h2>
-            <p className='text-sm text-gray-500'>
-              {channelInfo.description || "No description available."}
-            </p>
+            <h2>{channelInfo.name}</h2>
+            <p className='text-sm text-gray-500'>{channelInfo.description}</p>
           </ModalHeader>
           <ModalBody>
             <h2 className='mb-3 text-lg font-bold'>
               Channel Members
               <small className='ml-2 text-gray-500'>
-                ({channel.users.length})
+                ({channel.users?.length})
               </small>
             </h2>
             <div className='grid gap-3'>
-              {channel.users.map((user, i) => (
+              {channel.users?.map((user, i) => (
                 <ChannelUser
                   channel={channel}
                   key={i}
@@ -125,7 +135,7 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
                 Leave
               </Button>
             )}
-            {isOwner && (
+            {isOwner && !isDM && (
               <Button
                 color='danger'
                 onPress={deleteChannelModal.onOpen}
@@ -140,13 +150,13 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
 
       <ConfirmModal
         message='Are you sure you want to leave this channel?'
-        onYes={handleLeave}
+        onConfirm={handleLeave}
         {...leaveChannelModal}
       />
 
       <ConfirmModal
         message='Are you sure you want to delete this channel? This action cannot be undone.'
-        onYes={deleteChannel}
+        onConfirm={deleteChannel}
         {...deleteChannelModal}
       />
     </>
@@ -168,20 +178,14 @@ function ChannelUser({ channel, user }: ChannelUserProps) {
   };
 
   const isOwner = channel.ownerId === currentUser?.id;
+  const isDM = channel.type === "DM";
 
   return (
     <>
       <div className='flex items-center justify-between'>
-        <UserCard
-          avatarProps={{
-            src: user.avatarUrl ?? ""
-          }}
-          description={user.username}
-          key={user.id}
-          name={user.displayName}
-        />
+        <UserCard user={user} />
         <div className='flex gap-3'>
-          {isOwner && (
+          {isOwner && !isDM && (
             <Button
               color='danger'
               isIconOnly
@@ -196,7 +200,7 @@ function ChannelUser({ channel, user }: ChannelUserProps) {
 
       <ConfirmModal
         message='Are you sure you want to kick this user from the channel?'
-        onYes={handleKick}
+        onConfirm={handleKick}
         {...kickModal}
       />
     </>

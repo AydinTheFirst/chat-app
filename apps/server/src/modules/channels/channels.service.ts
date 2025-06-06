@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 
 import { QueryService } from '~/common/services/query.service';
@@ -9,11 +14,8 @@ import { CreateChannelDto, QueryChannelDto, UpdateChannelDto } from './channels.
 
 @Injectable()
 export class ChannelsService extends QueryService<Channel> {
-  userSelect: Prisma.UserSelect = {
-    avatarUrl: true,
-    displayName: true,
-    id: true,
-    username: true,
+  channelInclude: Prisma.ChannelInclude = {
+    users: { select: { id: true, profile: true, username: true } },
   };
 
   constructor(
@@ -78,12 +80,10 @@ export class ChannelsService extends QueryService<Channel> {
     return dmChannel;
   }
 
-  async findAll(query: QueryChannelDto, userId: string) {
-    console.log(query);
-
+  async findAll(_query: QueryChannelDto, userId: string) {
     const channels = await this.prisma.channel.findMany({
       include: {
-        users: { select: this.userSelect },
+        users: { select: { id: true, profile: true, username: true } },
       },
       where: {
         users: {
@@ -97,11 +97,7 @@ export class ChannelsService extends QueryService<Channel> {
 
   async findAllDMChannels(userId: string) {
     const channels = await this.prisma.channel.findMany({
-      include: {
-        users: {
-          select: this.userSelect,
-        },
-      },
+      include: this.channelInclude,
       where: {
         type: 'DM',
         users: {
@@ -119,7 +115,7 @@ export class ChannelsService extends QueryService<Channel> {
         messages: {
           include: {
             author: {
-              select: this.userSelect,
+              select: { id: true, profile: true, username: true },
             },
           },
         },
@@ -139,9 +135,7 @@ export class ChannelsService extends QueryService<Channel> {
 
   async findOne(id: string, userId: string) {
     const channel = await this.prisma.channel.findFirst({
-      include: {
-        users: { select: this.userSelect },
-      },
+      include: this.channelInclude,
       where: {
         id,
         users: { some: { id: userId } },
@@ -162,6 +156,10 @@ export class ChannelsService extends QueryService<Channel> {
       throw new ForbiddenException('You are not the owner of this channel');
     }
 
+    if (channel.type === 'DM') {
+      throw new BadRequestException('You cannot kick users from a DM channel');
+    }
+
     const updatedChannel = await this.prisma.channel.update({
       data: {
         users: {
@@ -176,9 +174,7 @@ export class ChannelsService extends QueryService<Channel> {
 
   async leaveChannel(id: string, userId: string) {
     const channel = await this.prisma.channel.findFirst({
-      include: {
-        users: { select: this.userSelect },
-      },
+      include: this.channelInclude,
       where: {
         id,
         users: { some: { id: userId } },

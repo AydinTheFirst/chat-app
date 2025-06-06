@@ -1,4 +1,5 @@
 import type { useDisclosure } from "@heroui/react";
+import type { Message } from "dictoly.js";
 
 import {
   Button,
@@ -10,13 +11,11 @@ import {
   Textarea
 } from "@heroui/react";
 
-import type { MessageWithAuthor } from "~/types";
-
 import { StyledButton } from "~/components/styled-button";
 import { handleError, http } from "~/lib/http";
 
 interface EditMessageProps extends ReturnType<typeof useDisclosure> {
-  message: MessageWithAuthor;
+  message: Message;
 }
 
 export default function EditMessage(props: EditMessageProps) {
@@ -40,7 +39,6 @@ export default function EditMessage(props: EditMessageProps) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       const form = (e.currentTarget as HTMLElement).closest("form");
-      console.log("Submitting form:", form);
       form?.dispatchEvent(
         new Event("submit", { bubbles: true, cancelable: true })
       );

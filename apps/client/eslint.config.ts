@@ -5,23 +5,19 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".react-router"] },
+  js.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
+  perfectionist.configs["recommended-alphabetical"],
+  reactHooks.configs["recommended-latest"],
   {
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.strict,
-      ...tseslint.configs.stylistic,
-      perfectionist.configs["recommended-alphabetical"]
-    ],
     files: ["**/*.{ts,tsx}"],
+    ignores: ["dist", ".react-router"],
     languageOptions: {
       globals: globals.browser
     },
-    plugins: {
-      "react-hooks": reactHooks
-    },
     rules: {
-      ...reactHooks.configs.recommended.rules,
+      "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/consistent-type-imports": [
         "error",
         { prefer: "type-imports" }

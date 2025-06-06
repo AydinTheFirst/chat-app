@@ -1,5 +1,6 @@
+import type { Message } from "dictoly.js";
+
 import {
-  Avatar,
   Button,
   cn,
   Dropdown,
@@ -8,96 +9,82 @@ import {
   DropdownTrigger,
   useDisclosure
 } from "@heroui/react";
-import { LucideMoreVertical } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import {
+  LucideChevronDown,
+  LucideCopy,
+  LucideEdit,
+  LucideTrash
+} from "lucide-react";
 import { toast } from "sonner";
 
-import type { MessageWithAuthor } from "~/types";
-
+import CdnAvatar from "~/components/cdn-avatar";
 import ConfirmModal from "~/components/confirm-modal";
+import { MarkdownRenderer } from "~/components/markdown-renderer";
 import { useAuth } from "~/hooks/use-auth";
 import { handleError, http } from "~/lib/http";
 
 import EditMessage from "./edit-message";
 
 interface EditMessageProps {
-  message: MessageWithAuthor;
+  message: Message;
 }
 
 interface MessageBubbleProps {
-  message: MessageWithAuthor;
+  message: Message;
 }
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const { user } = useAuth();
-  const fromUser = message.author.id === user?.id;
-  const avatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${message.author.username}`;
+  const fromUser = message.authorId === user.id;
 
   return (
     <div
       className={cn(
-        "flex w-full items-start gap-2.5",
-        "group relative",
+        "group animate-appearance-in flex gap-3",
         fromUser ? "justify-end" : "justify-start"
       )}
     >
       {!fromUser && (
-        <Avatar
-          alt={message.author.username}
-          src={avatarUrl}
+        <CdnAvatar
+          name={message.author?.username}
+          src={message.author?.profile?.avatarUrl ?? undefined}
         />
       )}
 
       {fromUser && (
-        <div
-          className={cn(
-            "grid h-full place-items-center",
-            "opacity-0 transition-all group-hover:opacity-100"
-          )}
-        >
+        <div className={cn("opacity-0 group-hover:opacity-100")}>
           <MessageActions message={message} />
         </div>
       )}
 
-      <div
-        className={cn(
-          "flex max-w-xl flex-col gap-3 p-3 leading-relaxed",
-          fromUser
-            ? "rounded-s-xl rounded-ee-xl bg-blue-100 dark:bg-blue-700" // sağ baloncuk farklı renk ve köşe
-            : "bg-content3 rounded-e-xl rounded-es-xl dark:bg-gray-700"
-        )}
-      >
+      <div className='flex flex-col gap-1'>
         {!fromUser && (
           <span className='text-sm font-semibold text-gray-900 dark:text-white'>
-            {message.author.username}
+            {message.author?.username}
           </span>
         )}
-        <Message content={message.content} />
+
+        <div
+          className={cn(
+            "flex flex-col gap-3 p-3 leading-relaxed",
+            fromUser
+              ? "rounded-s-xl rounded-ee-xl bg-blue-100 dark:bg-blue-700" // sağ baloncuk farklı renk ve köşe
+              : "rounded-e-xl rounded-es-xl bg-sky-100 dark:bg-sky-700"
+          )}
+        >
+          <MessageContent content={message.content} />
+        </div>
         <span className='text-end text-xs text-gray-500 dark:text-gray-400'>
-          {new Date(message.createdAt).toLocaleString()}
+          {message.editedAt ? (
+            <span>
+              {new Date(message.editedAt).toLocaleString()}
+              <small className='ml-2'>(Edited)</small>
+            </span>
+          ) : (
+            <span>{new Date(message.createdAt).toLocaleString()}</span>
+          )}
         </span>
       </div>
-    </div>
-  );
-}
-
-function Message({ content }: { content: string }) {
-  return (
-    <div className='prose dark:prose-invert max-w-full'>
-      <ReactMarkdown
-        components={{
-          a: (props) => (
-            <a
-              {...props}
-              className='underline'
-            />
-          )
-        }}
-        remarkPlugins={[remarkGfm]}
-      >
-        {content}
-      </ReactMarkdown>
     </div>
   );
 }
@@ -115,6 +102,11 @@ function MessageActions({ message }: EditMessageProps) {
     }
   };
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(message.content);
+    toast.success("Message copied to clipboard.");
+  };
+
   return (
     <>
       <Dropdown>
@@ -124,13 +116,22 @@ function MessageActions({ message }: EditMessageProps) {
             size='sm'
             variant='light'
           >
-            <LucideMoreVertical className='h-4 w-4' />
+            <LucideChevronDown className='h-4 w-4' />
           </Button>
         </DropdownTrigger>
         <DropdownMenu aria-label='Message Actions'>
           <DropdownItem
+            key='copy'
+            onPress={handleCopy}
+            startContent={<LucideCopy className='h-4 w-4' />}
+          >
+            Copy
+          </DropdownItem>
+
+          <DropdownItem
             key='edit'
-            onClick={editModal.onOpen}
+            onPress={editModal.onOpen}
+            startContent={<LucideEdit className='h-4 w-4' />}
           >
             Edit
           </DropdownItem>
@@ -139,7 +140,8 @@ function MessageActions({ message }: EditMessageProps) {
             className='text-danger'
             color='danger'
             key='delete'
-            onClick={confirmDeleteModal.onOpen}
+            onPress={confirmDeleteModal.onOpen}
+            startContent={<LucideTrash className='h-4 w-4' />}
           >
             Delete
           </DropdownItem>
@@ -154,8 +156,16 @@ function MessageActions({ message }: EditMessageProps) {
       <ConfirmModal
         {...confirmDeleteModal}
         message='Are you sure you want to delete this message?'
-        onYes={handleDelete}
+        onConfirm={handleDelete}
       />
     </>
+  );
+}
+
+function MessageContent({ content }: { content: string }) {
+  return (
+    <div className='prose dark:prose-invert text-sm break-all'>
+      <MarkdownRenderer content={content} />
+    </div>
   );
 }

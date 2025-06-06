@@ -1,9 +1,9 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-import { API_URL } from "~/config";
+import { dictoly } from "./dictoly";
 
-const http = axios.create({ baseURL: API_URL.concat("/api") });
+const http = dictoly.http;
 
 const getToken = () => {
   if (typeof window === "undefined") return;

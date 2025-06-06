@@ -3,7 +3,6 @@ import { Outlet, useNavigation } from "react-router";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
 
-import { AuthProvider } from "~/context/auth-context";
 import { fetcher, handleError } from "~/lib/http";
 import { Providers } from "~/pages/provider";
 export default function Layout() {
@@ -19,17 +18,15 @@ export default function Layout() {
           onError: handleError
         }}
       >
-        <AuthProvider>
-          <Progress
-            aria-label='Loading'
-            className='fixed top-0 right-0 left-0 z-50'
-            hidden={!isLoading}
-            isIndeterminate
-            size='sm'
-          />
-          <Outlet />
-          <Toaster richColors />
-        </AuthProvider>
+        <Progress
+          aria-label='Loading'
+          className='fixed top-0 right-0 left-0 z-50'
+          hidden={!isLoading}
+          isIndeterminate
+          size='sm'
+        />
+        <Outlet />
+        <Toaster richColors />
       </SWRConfig>
     </Providers>
   );

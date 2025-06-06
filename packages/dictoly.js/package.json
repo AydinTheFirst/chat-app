@@ -1,0 +1,31 @@
+{
+  "name": "dictoly.js",
+  "version": "1.0.0",
+  "description": "A powerful and flexible Dicoly API client",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "lint": "eslint . --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "author": "AydinTheFirst",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.29",
+    "eslint": "^9.28.0",
+    "eslint-plugin-perfectionist": "^4.14.0",
+    "globals": "^16.2.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "class-transformer": "^0.5.1",
+    "reflect-metadata": "^0.2.2"
+  }
+}

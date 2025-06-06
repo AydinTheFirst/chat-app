@@ -1,38 +1,43 @@
-import type { Channel, User } from "server-types";
+import type { Channel } from "dictoly.js";
+import type React from "react";
 
-import type { ChannelWithUsers } from "~/types";
+import { type User } from "dictoly.js";
 
-export const getAvatar = (user: User) => {
-  if (user.avatarUrl) return user.avatarUrl;
-  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`;
-};
+import { CDN_URL } from "~/config";
 
-export const getIcon = (channel: Channel) => {
-  return `https://api.dicebear.com/9.x/shapes/svg?seed=${channel.name}`;
-};
+export function getFormData(e: React.FormEvent<HTMLFormElement>) {
+  const formData = new FormData(e.currentTarget);
+  const data: Record<string, string> = {};
 
-export const getChannelInfo = (
-  channel: ChannelWithUsers,
-  currentUser: User
-) => {
-  const isDM = channel.type === "DM";
+  for (const [key, value] of formData.entries()) {
+    if (!value) continue;
+    if (value instanceof File) continue; // Skip files
+    data[key] = value.toString();
+  }
 
-  const displayName = isDM
-    ? channel.users.find((u) => u.id !== currentUser?.id)?.displayName
-    : channel.name;
+  return data;
+}
 
-  const avatar = isDM
-    ? getAvatar(channel.users.find((u) => u.id !== currentUser?.id) as User)
-    : getIcon(channel);
+export const getChannelInfo = (channel: Channel, currentUser: User) => {
+  switch (channel.type) {
+    case "DM": {
+      const user = channel.users?.find((u) => u.id !== currentUser.id);
 
-  const description = isDM
-    ? channel.users.find((u) => u.id !== currentUser?.id)?.username
-    : channel.description || `${channel.users.length} members`;
+      const description = user?.profile?.displayName || "Unknown User";
+      const name = user?.username || "Unknown User";
+      const icon = user?.profile?.avatarUrl
+        ? new URL(user.profile.avatarUrl, CDN_URL).toString()
+        : null;
 
-  return {
-    avatar,
-    description,
-    displayName,
-    isDM
-  };
+      return { description, icon, isDM: true, name, user };
+    }
+
+    case "GROUP":
+      return {
+        description: channel.description || "No description",
+        icon: null,
+        isDM: false,
+        name: channel.name
+      };
+  }
 };

@@ -1,4 +1,4 @@
-import type { User } from "server-types";
+import type { User } from "dictoly.js";
 
 import React, { createContext, useEffect, useState } from "react";
 import useSWR from "swr";
@@ -6,7 +6,7 @@ import useSWR from "swr";
 interface AuthContextType {
   logout: () => void;
   setUser: React.Dispatch<React.SetStateAction<undefined | User>>;
-  user?: User;
+  user: User;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -15,7 +15,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User>();
-  const { data: me } = useSWR<User>("/auth/@me");
+  const { data: me } = useSWR<User>("/profiles/me");
 
   useEffect(() => {
     if (!me) return;
@@ -26,6 +26,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(undefined);
     localStorage.removeItem("user");
   };
+
+  if (!user) return;
 
   return (
     <AuthContext.Provider value={{ logout, setUser, user }}>

@@ -1,21 +1,19 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Body, Controller, HttpCode, HttpStatus, Patch, Post, UseGuards } from '@nestjs/common';
 
 import { GetUser } from '~/common/decorators';
 import { AuthGuard } from '~/common/guards';
 
 import { LoginDto, RegisterDto } from './auth.dto';
 import { AuthService } from './auth.service';
+import { UpdatePasswordDto } from './password.dto';
+import { PasswordService } from './password.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
-
-  @Get('@me')
-  @UseGuards(AuthGuard)
-  getMe(@GetUser() user: User) {
-    return user;
-  }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly passwordService: PasswordService,
+  ) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
@@ -26,5 +24,11 @@ export class AuthController {
   @Post('register')
   register(@Body() body: RegisterDto) {
     return this.authService.register(body);
+  }
+
+  @Patch('password')
+  @UseGuards(AuthGuard)
+  updatePassword(@GetUser('id') userId: string, @Body() updatePasswordDto: UpdatePasswordDto) {
+    return this.passwordService.updatePassword(userId, updatePasswordDto);
   }
 }

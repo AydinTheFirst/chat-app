@@ -1,4 +1,12 @@
-import { Button, Card, CardBody, Textarea } from "@heroui/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  Navbar,
+  NavbarContent,
+  Textarea
+} from "@heroui/react";
+import { Channel, Message, plainToInstance } from "dictoly.js";
 import {
   LucideEllipsisVertical,
   LucideSend,
@@ -7,15 +15,16 @@ import {
 import React, { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useLoaderData } from "react-router";
 
-import type { ChannelWithUsers, MessageWithAuthor } from "~/types";
-
 import EmojiPicker from "~/components/emoji-picker";
+import TypingIndicator from "~/components/typing-indicator";
 import { useAuth } from "~/hooks/use-auth";
+import { useSocket } from "~/hooks/use-socket";
+import { dictoly } from "~/lib/dictoly";
 import { handleError, http } from "~/lib/http";
-import { useSocket } from "~/lib/use-socket";
 
 import type { Route } from "./+types/page";
 
+import SidebarToggler from "../../sidebar-toggler";
 import ChannelInfoModal from "./channel-info";
 import CreateInvite from "./create-invite";
 import MessageBubble from "./message-bubble";
@@ -27,30 +36,26 @@ export const clientLoader = async ({ params }: Route.ClientLoaderArgs) => {
     throw new Response("Channel ID is required", { status: 400 });
   }
 
-  const { data: channel } = await http.get<ChannelWithUsers>(
-    `/channels/${channelId}`
-  );
+  const channel = await dictoly.channels.getById(channelId);
 
   if (!channel) {
     throw new Response("Channel not found", { status: 404 });
   }
 
-  const { data: messages } = await http.get<MessageWithAuthor[]>(
-    `/channels/${channelId}/messages`
-  );
+  const messages = await dictoly.channels.getMessages(channelId);
 
   return { channel, messages };
 };
 
 export default function Page() {
-  const [messages, setMessages] = React.useState<MessageWithAuthor[]>([]);
+  const [messages, setMessages] = React.useState<Message[]>([]);
   const { channel, messages: _messages } = useLoaderData<typeof clientLoader>();
-  const socket = useSocket();
+  const { socket } = useSocket();
   const bottomRef = useRef<HTMLDivElement>(null);
   const { user: currentUser } = useAuth();
 
   useEffect(() => {
-    setMessages(_messages);
+    setMessages(plainToInstance(Message, _messages));
   }, [_messages]);
 
   useEffect(() => {
@@ -64,15 +69,7 @@ export default function Page() {
 
     socket.emit("join", channel.id);
 
-    socket.on("joined", (channelId: string) => {
-      console.log(`Joined channel: ${channelId}`);
-    });
-
-    socket.on("left", (channelId: string) => {
-      console.log(`Left channel: ${channelId}`);
-    });
-
-    socket.on("messageCreate", (message: MessageWithAuthor) => {
+    socket.on("messageCreate", (message: Message) => {
       if (message.channelId !== channel.id) return;
 
       setMessages((prev) => [...prev, message]);
@@ -83,7 +80,7 @@ export default function Page() {
       }
     });
 
-    socket.on("messageUpdate", (updatedMessage: MessageWithAuthor) => {
+    socket.on("messageUpdate", (updatedMessage: Message) => {
       if (updatedMessage.channelId !== channel.id) return;
 
       setMessages((prev) =>
@@ -91,44 +88,41 @@ export default function Page() {
       );
     });
 
-    socket.on("messageDelete", (deletedMessage: MessageWithAuthor) => {
+    socket.on("messageDelete", (deletedMessage: Message) => {
       setMessages((prev) => prev.filter((m) => m.id !== deletedMessage.id));
     });
 
     return () => {
       socket.off("messageCreate");
-      socket.off("joined");
+      socket.off("messageUpdate");
+      socket.off("messageDelete");
       socket.emit("leave", channel.id);
     };
   }, [socket, channel, currentUser]);
 
   return (
     <div className='flex h-screen flex-col'>
-      <Card
-        className='dark:bg-[#1D1F1F]'
-        radius='none'
-        shadow='none'
+      <Navbar
+        className='bg-content1 shadow'
+        maxWidth='full'
       >
-        <CardBody>
-          <div className='flex justify-between'>
-            <div>
-              <ChannelInfoModal channel={channel} />
-            </div>
-            <div className='flex justify-end gap-3'>
-              {channel.type === "GROUP" && <CreateInvite />}
-              <Button
-                isIconOnly
-                variant='light'
-              >
-                <LucideEllipsisVertical />
-              </Button>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+        <NavbarContent justify='start'>
+          <SidebarToggler className='md:hidden' />
+          <ChannelInfoModal channel={plainToInstance(Channel, channel)} />
+        </NavbarContent>
+        <NavbarContent justify='end'>
+          {channel.type === "GROUP" && <CreateInvite />}
+          <Button
+            isIconOnly
+            variant='light'
+          >
+            <LucideEllipsisVertical />
+          </Button>
+        </NavbarContent>
+      </Navbar>
 
-      <main className='flex-1 overflow-x-hidden overflow-y-auto'>
-        <div className='container grid gap-3 py-10'>
+      <main className='container flex-1 overflow-x-hidden overflow-y-auto py-4'>
+        <div className='flex flex-col gap-3'>
           {messages.map((m) => (
             <MessageBubble
               key={m.id}
@@ -145,7 +139,9 @@ export default function Page() {
           )}
         </div>
       </main>
-
+      <div className='relative'>
+        <TypingIndicator channelId={channel.id} />
+      </div>
       <MessageInput />
     </div>
   );
@@ -155,6 +151,15 @@ function MessageInput() {
   const [message, setMessage] = useState<string>("");
   const { channel } = useLoaderData<typeof clientLoader>();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const { socket } = useSocket();
+  const [lastEvent, setLastEvent] = useState<string>("");
+
+  useEffect(() => {
+    const event = message.length > 0 ? "startTyping" : "stopTyping";
+    if (lastEvent === event) return;
+    setLastEvent(event);
+    socket.emit(event, { channelId: channel.id });
+  }, [socket, message, channel, lastEvent]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

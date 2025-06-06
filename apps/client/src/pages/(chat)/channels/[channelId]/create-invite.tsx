@@ -1,4 +1,4 @@
-import type { InviteLink } from "server-types";
+import type { InviteLink } from "dictoly.js";
 
 import {
   Button,

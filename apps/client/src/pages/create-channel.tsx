@@ -14,7 +14,9 @@ import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
 import { StyledButton } from "~/components/styled-button";
-import { handleError, http } from "~/lib/http";
+import { dictoly } from "~/lib/dictoly";
+import { handleError } from "~/lib/http";
+import { getFormData } from "~/lib/utils";
 
 export default function CreateChannel() {
   const { isOpen, onClose, onOpen, onOpenChange } = useDisclosure();
@@ -23,11 +25,12 @@ export default function CreateChannel() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget),
-      data: Record<string, unknown> = Object.fromEntries(formData.entries());
+    const formData = getFormData(event);
 
     try {
-      const { data: channel } = await http.post("/channels", data);
+      const channel = await dictoly.channels.create({
+        name: formData.name
+      });
       toast.success("Channel created successfully!");
       onClose();
       revalidator.revalidate();

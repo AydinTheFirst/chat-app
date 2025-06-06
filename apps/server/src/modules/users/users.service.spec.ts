@@ -123,7 +123,7 @@ describe('UsersService', () => {
     const user = { id: '1' };
     prismaMock.user.findUnique.mockResolvedValue(user);
 
-    const dto: UpdateUserDto = { displayName: 'New', password: 'newpass' };
+    const dto: UpdateUserDto = { password: 'newpass' };
     const result = await usersService.update('1', dto);
 
     expect(argon.hash).toHaveBeenCalledWith('newpass');

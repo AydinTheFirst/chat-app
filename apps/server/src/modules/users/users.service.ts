@@ -13,7 +13,14 @@ export class UsersService {
     createUserDto.password = await argon.hash(createUserDto.password);
 
     const user = await this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        ...createUserDto,
+        profile: {
+          create: {
+            displayName: createUserDto.username,
+          },
+        },
+      },
     });
 
     return user;
@@ -50,6 +57,10 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  removeMe(id: string) {
+    return this.remove(id);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

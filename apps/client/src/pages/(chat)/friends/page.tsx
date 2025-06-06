@@ -1,6 +1,14 @@
 import type { Channel } from "server-types";
 
-import { Button, Card, CardBody } from "@heroui/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  Navbar,
+  NavbarContent,
+  useDisclosure
+} from "@heroui/react";
+import { Friendship, plainToInstance, User } from "dictoly.js";
 import {
   LucideMessageSquare,
   LucideUserCheck2,
@@ -9,23 +17,18 @@ import {
 import { useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
-import type { FriendshipWithUser } from "~/types";
-
-import CurrentUserCard from "~/components/current-user-card";
-import { UserCard } from "~/components/user-card";
+import ConfirmModal from "~/components/confirm-modal";
+import UserCard from "~/components/user-card";
 import { useAuth } from "~/hooks/use-auth";
+import { dictoly } from "~/lib/dictoly";
 import { handleError, http } from "~/lib/http";
 
+import SidebarToggler from "../sidebar-toggler";
 import AddFriend from "./add-friend";
 
 export const clientLoader = async () => {
-  const { data: friends } =
-    await http.get<FriendshipWithUser[]>("/friendships");
-
-  const { data: pending } = await http.get<FriendshipWithUser[]>(
-    "/friendships/pending"
-  );
-
+  const friends = await dictoly.friendships.getAll();
+  const pending = await dictoly.friendships.getPending();
   return { friends, pending };
 };
 
@@ -42,19 +45,18 @@ export default function Friends() {
 
   return (
     <div className='flex h-screen flex-col gap-3'>
-      <Card
-        className='dark:bg-[#1D1F1F]'
-        radius='none'
+      <Navbar
+        className='bg-content1 shadow'
+        maxWidth='full'
       >
-        <CardBody className='grid grid-cols-2 gap-3'>
-          <div>
-            <CurrentUserCard />
-          </div>
-          <div className='flex justify-end'>
-            <AddFriend />
-          </div>
-        </CardBody>
-      </Card>
+        <NavbarContent justify='start'>
+          <SidebarToggler className='md:hidden' />
+          <UserCard user={user} />
+        </NavbarContent>
+        <NavbarContent justify='end'>
+          <AddFriend />
+        </NavbarContent>
+      </Navbar>
 
       <div className='container flex-1 overflow-y-auto py-4'>
         <h2 className='mb-3 text-xl font-bold'>
@@ -68,7 +70,7 @@ export default function Friends() {
 
           {friends.map((friend) => (
             <FriendCard
-              friend={friend}
+              friend={plainToInstance(Friendship, friend)}
               key={friend.id}
             />
           ))}
@@ -86,7 +88,7 @@ export default function Friends() {
             {pending.map((request) => (
               <PendingRequestCard
                 key={request.id}
-                request={request}
+                request={plainToInstance(Friendship, request)}
               />
             ))}
           </div>
@@ -96,17 +98,19 @@ export default function Friends() {
   );
 }
 
-function FriendCard({ friend }: { friend: FriendshipWithUser }) {
+function FriendCard({ friend }: { friend: Friendship }) {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const revalidator = useRevalidator();
 
-  const user = friend.to.id === currentUser?.id ? friend.from : friend.to;
+  const removeFriend = useDisclosure();
+
+  const user = friend.to?.id === currentUser?.id ? friend.from : friend.to;
 
   const handleDM = async () => {
     try {
       const { data: channel } = await http.post<Channel>(
-        `/channels/dm/${user.id}`
+        `/channels/dm/${user?.id}`
       );
       navigate(`/channels/${channel.id}`);
     } catch (error) {
@@ -117,7 +121,7 @@ function FriendCard({ friend }: { friend: FriendshipWithUser }) {
   const handleRemove = async () => {
     try {
       await http.delete(`/friendships/${friend.id}`);
-      toast.success(`Removed ${user.username} from friends.`);
+      toast.success(`Removed ${user?.username} from friends.`);
       revalidator.revalidate();
     } catch (error) {
       handleError(error);
@@ -125,47 +129,49 @@ function FriendCard({ friend }: { friend: FriendshipWithUser }) {
   };
 
   return (
-    <Card isHoverable>
-      <CardBody className='grid grid-cols-2'>
-        <div>
-          <UserCard
-            avatarProps={{
-              src: `https://api.dicebear.com/9.x/bottts/svg?seed=${user.username}`
-            }}
-            description={user.username}
-            name={user.displayName}
-          />
-        </div>
-        <div className='flex items-center justify-end gap-2'>
-          <Button
-            color='primary'
-            isIconOnly
-            onPress={handleDM}
-            variant='light'
-          >
-            <LucideMessageSquare />
-          </Button>
-          <Button
-            color='danger'
-            isIconOnly
-            onPress={handleRemove}
-            variant='light'
-          >
-            <LucideUserX2 />
-          </Button>
-        </div>
-      </CardBody>
-    </Card>
+    <>
+      <Card isHoverable>
+        <CardBody className='grid grid-cols-2'>
+          <div>
+            <UserCard user={plainToInstance(User, user)} />
+          </div>
+          <div className='flex items-center justify-end gap-2'>
+            <Button
+              color='primary'
+              isIconOnly
+              onPress={handleDM}
+              variant='light'
+            >
+              <LucideMessageSquare />
+            </Button>
+            <Button
+              color='danger'
+              isIconOnly
+              onPress={removeFriend.onOpen}
+              variant='light'
+            >
+              <LucideUserX2 />
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
+
+      <ConfirmModal
+        {...removeFriend}
+        message={`Are you sure you want to remove ${user?.username} from your friends?`}
+        onConfirm={handleRemove}
+      />
+    </>
   );
 }
 
-const PendingRequestCard = ({ request }: { request: FriendshipWithUser }) => {
+const PendingRequestCard = ({ request }: { request: Friendship }) => {
   const revalidator = useRevalidator();
 
   const handleAccept = async () => {
     try {
       await http.post(`/friendships/${request.id}/accept`);
-      toast.success(`Friend request from ${request.from.username} accepted!`);
+      toast.success(`Friend request from ${request.from?.username} accepted!`);
       revalidator.revalidate();
     } catch (error) {
       handleError(error);
@@ -175,7 +181,7 @@ const PendingRequestCard = ({ request }: { request: FriendshipWithUser }) => {
   const handleReject = async () => {
     try {
       await http.post(`/friendships/${request.id}/reject`);
-      toast.success(`Friend request from ${request.from.username} rejected!`);
+      toast.success(`Friend request from ${request.from?.username} rejected!`);
       revalidator.revalidate();
     } catch (error) {
       handleError(error);
@@ -186,13 +192,7 @@ const PendingRequestCard = ({ request }: { request: FriendshipWithUser }) => {
     <Card isHoverable>
       <CardBody className='grid grid-cols-2'>
         <div>
-          <UserCard
-            avatarProps={{
-              src: `https://api.dicebear.com/9.x/bottts/svg?seed=${request.from.username}`
-            }}
-            key={request.id}
-            name={request.from.username}
-          />
+          <UserCard user={plainToInstance(User, request.from)} />
         </div>
         <div className='flex items-center justify-end gap-3'>
           <Button

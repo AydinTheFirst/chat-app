@@ -1,56 +1,41 @@
-import type { User } from "server-types";
+import type { Channel } from "dictoly.js";
 
-import { Avatar, Card, CardBody, cn, Link } from "@heroui/react";
+import { Avatar, Card, CardBody, Link } from "@heroui/react";
 import { useLocation } from "react-router";
 
-import type { ChannelWithUsers } from "~/types";
-
-import { useAuth } from "~/hooks/use-auth";
-import { getChannelInfo } from "~/lib/utils";
-
 interface ChatBoxProps {
-  channel: ChannelWithUsers;
+  channel: Channel;
 }
 
 export default function ChatBox(props: ChatBoxProps) {
-  const { user: currentUser } = useAuth();
   const { channel } = props;
 
   const { pathname } = useLocation();
 
-  const isActive = pathname === `/channels/${channel.id}`;
-
-  const { avatar, displayName } = getChannelInfo(channel, currentUser as User);
-
   return (
     <Card
       as={Link}
-      className={cn(isActive && "dark:bg-[#2E2F2F]")}
       href={`/channels/${channel.id}`}
+      isDisabled={pathname === `/channels/${channel.id}`}
       isHoverable
       isPressable
-      shadow='none'
     >
-      <CardBody className='grid grid-cols-12 gap-3'>
-        <div className='col-span-2'>
-          <Avatar
-            alt={displayName}
-            className='h-12 w-12'
-            name={displayName}
-            src={avatar}
-          />
-        </div>
-        <div className='col-span-8'>
-          <h3 className='text-lg font-semibold'>{displayName}</h3>
-          <p className='truncate text-sm text-gray-500'>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Non,
-            ducimus quos totam deleniti laborum excepturi doloribus delectus
-            tenetur magni qui modi, esse error quo recusandae ex minus
-            reprehenderit rerum vel.
-          </p>
-        </div>
-        <div className='col-span-2'>
-          <p className='flex justify-end text-xs text-gray-500'>now</p>
+      <CardBody>
+        <div className='flex items-center gap-3'>
+          <Avatar className='flex-shrink-0' />
+          <div className='flex min-w-0 flex-col'>
+            <span className='truncate'>{channel.name}</span>
+            <p className='truncate text-sm text-gray-500'>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Itaque
+              facilis reprehenderit dolore aspernatur odio reiciendis,
+              doloremque explicabo excepturi qui esse eum cupiditate alias
+              perferendis quos doloribus optio velit ducimus harum?
+            </p>
+            <div className='m-1' />
+            <span className='text-end text-xs text-gray-500'>
+              {new Date(channel.createdAt).toLocaleString()}
+            </span>
+          </div>
         </div>
       </CardBody>
     </Card>

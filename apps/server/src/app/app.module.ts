@@ -8,6 +8,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AwsModule, NetgsmModule } from '~/common/modules';
 import { multerConfig, serveStaticConfig, throttlerConfig } from '~/config';
 import { PrismaModule } from '~/database';
+import { GatewaysModule } from '~/gateways/gateways.module';
 import modules from '~/modules';
 
 import { AppController } from './app.controller';
@@ -17,6 +18,7 @@ import { AppController } from './app.controller';
   imports: [
     ...modules,
     PrismaModule,
+    GatewaysModule,
     AwsModule.forRoot(),
     NetgsmModule.forRoot(),
     ScheduleModule.forRoot(),

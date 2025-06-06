@@ -12,6 +12,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "dictoly.js": "workspace:^",
     "@heroui/react": "2.8.0-beta.6",
     "@internationalized/date": "^3.8.1",
     "@react-router/node": "^7.6.1",
@@ -28,6 +29,7 @@
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
     "react-router": "^7.6.1",
+    "react-syntax-highlighter": "^15.6.1",
     "remark-gfm": "^4.0.1",
     "rr-next-routes": "^0.0.9",
     "socket.io-client": "^4.8.1",
@@ -41,6 +43,7 @@
     "@types/node": "^22.15.29",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9.28.0",
     "eslint-plugin-perfectionist": "^4.13.0",
     "eslint-plugin-react-hooks": "^5.2.0",

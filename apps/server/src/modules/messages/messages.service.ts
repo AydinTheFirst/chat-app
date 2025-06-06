@@ -2,15 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { QueryService } from '~/common/services/query.service';
 import { Message, Prisma, PrismaService } from '~/database';
+import { MessagesGateway } from '~/gateways/messages.gateway';
 
-import { ChannelsGateway } from '../channels';
 import { CreateMessageDto, QueryMessageDto, UpdateMessageDto } from './messages.dto';
 
 @Injectable()
 export class MessagesService extends QueryService<Message> {
+  messageInclude: Prisma.MessageInclude = {
+    author: { select: { id: true, profile: true, username: true } },
+    channel: true,
+  };
+
   constructor(
     private prisma: PrismaService,
-    private channelsGateway: ChannelsGateway,
+    private messagesGateway: MessagesGateway,
   ) {
     super(prisma.message);
   }
@@ -37,18 +42,10 @@ export class MessagesService extends QueryService<Message> {
         },
         content: createMessageDto.content,
       },
-      include: {
-        author: {
-          select: {
-            displayName: true,
-            id: true,
-            username: true,
-          },
-        },
-      },
+      include: this.messageInclude,
     });
 
-    this.channelsGateway.emitMessageCreate(message);
+    this.messagesGateway.emitMessageCreate(message);
 
     return message;
   }
@@ -83,19 +80,11 @@ export class MessagesService extends QueryService<Message> {
     await this.findOne(id, userId);
 
     const message = await this.prisma.message.delete({
-      include: {
-        author: {
-          select: {
-            displayName: true,
-            id: true,
-            username: true,
-          },
-        },
-      },
+      include: this.messageInclude,
       where: { id },
     });
 
-    this.channelsGateway.emitMessageDelete(message);
+    this.messagesGateway.emitMessageDelete(message);
 
     return message;
   }
@@ -108,15 +97,7 @@ export class MessagesService extends QueryService<Message> {
         editedAt: new Date(),
         ...updateMessageDto,
       },
-      include: {
-        author: {
-          select: {
-            displayName: true,
-            id: true,
-            username: true,
-          },
-        },
-      },
+      include: this.messageInclude,
       where: { id },
     });
 
@@ -124,7 +105,7 @@ export class MessagesService extends QueryService<Message> {
       throw new NotFoundException(`Message with id ${id} not found`);
     }
 
-    this.channelsGateway.emitMessageUpdate(updatedMessage);
+    this.messagesGateway.emitMessageUpdate(updatedMessage);
 
     return updatedMessage;
   }
