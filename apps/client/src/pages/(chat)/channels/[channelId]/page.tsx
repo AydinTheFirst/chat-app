@@ -6,7 +6,7 @@ import {
   NavbarContent,
   Textarea
 } from "@heroui/react";
-import { Channel, Message, plainToInstance } from "dictoly.js";
+import { Channel, Message, plainToInstance } from "dactoly.js";
 import {
   LucideEllipsisVertical,
   LucideSend,
@@ -18,8 +18,8 @@ import { useLoaderData } from "react-router";
 import EmojiPicker from "~/components/emoji-picker";
 import TypingIndicator from "~/components/typing-indicator";
 import { useAuth } from "~/hooks/use-auth";
-import { useDictoly } from "~/hooks/use-dictoly";
-import { dictoly } from "~/lib/dictoly";
+import { useDactoly } from "~/hooks/use-dactoly";
+import { dactoly } from "~/lib/dactoly";
 import { handleError, http } from "~/lib/http";
 
 import type { Route } from "./+types/page";
@@ -36,13 +36,13 @@ export const clientLoader = async ({ params }: Route.ClientLoaderArgs) => {
     throw new Response("Channel ID is required", { status: 400 });
   }
 
-  const channel = await dictoly.channels.getById(channelId);
+  const channel = await dactoly.channels.getById(channelId);
 
   if (!channel) {
     throw new Response("Channel not found", { status: 404 });
   }
 
-  const messages = await dictoly.channels.getMessages(channelId);
+  const messages = await dactoly.channels.getMessages(channelId);
 
   return { channel, messages };
 };
@@ -50,7 +50,7 @@ export const clientLoader = async ({ params }: Route.ClientLoaderArgs) => {
 export default function Page() {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const { channel, messages: _messages } = useLoaderData<typeof clientLoader>();
-  const { dictolyClient } = useDictoly();
+  const { dactolyClient } = useDactoly();
   const bottomRef = useRef<HTMLDivElement>(null);
   const { user: currentUser } = useAuth();
 
@@ -65,11 +65,11 @@ export default function Page() {
   }, [messages]);
 
   useEffect(() => {
-    if (!dictolyClient) return;
+    if (!dactolyClient) return;
 
-    dictolyClient.ws.emit("join", channel.id);
+    dactolyClient.ws.emit("join", channel.id);
 
-    dictolyClient.ws.on("messageCreate", (message) => {
+    dactolyClient.ws.on("messageCreate", (message) => {
       if (message.channelId !== channel.id) return;
 
       setMessages((prev) => [...prev, message]);
@@ -80,7 +80,7 @@ export default function Page() {
       }
     });
 
-    dictolyClient.ws.on("messageUpdate", (updatedMessage: Message) => {
+    dactolyClient.ws.on("messageUpdate", (updatedMessage: Message) => {
       if (updatedMessage.channelId !== channel.id) return;
 
       setMessages((prev) =>
@@ -88,17 +88,17 @@ export default function Page() {
       );
     });
 
-    dictolyClient.ws.on("messageDelete", (deletedMessage: Message) => {
+    dactolyClient.ws.on("messageDelete", (deletedMessage: Message) => {
       setMessages((prev) => prev.filter((m) => m.id !== deletedMessage.id));
     });
 
     return () => {
-      dictolyClient.ws.off("messageCreate");
-      dictolyClient.ws.off("messageUpdate");
-      dictolyClient.ws.off("messageDelete");
-      dictolyClient.ws.emit("leave", channel.id);
+      dactolyClient.ws.off("messageCreate");
+      dactolyClient.ws.off("messageUpdate");
+      dactolyClient.ws.off("messageDelete");
+      dactolyClient.ws.emit("leave", channel.id);
     };
-  }, [dictolyClient, channel, currentUser]);
+  }, [dactolyClient, channel, currentUser]);
 
   return (
     <div className='flex h-screen flex-col'>
@@ -108,9 +108,9 @@ export default function Page() {
       >
         <NavbarContent justify='start'>
           <SidebarToggler className='md:hidden' />
-          <ChannelInfoModal channel={plainToInstance(Channel, channel)} />
         </NavbarContent>
         <NavbarContent justify='end'>
+          <ChannelInfoModal channel={plainToInstance(Channel, channel)} />
           {channel.type === "GROUP" && <CreateInvite />}
           <Button
             isIconOnly
@@ -121,8 +121,8 @@ export default function Page() {
         </NavbarContent>
       </Navbar>
 
-      <main className='container flex-1 overflow-x-hidden overflow-y-auto py-4'>
-        <div className='flex flex-col gap-3'>
+      <main className='flex-1 overflow-x-hidden overflow-y-auto py-4'>
+        <div className='container flex flex-col gap-3'>
           {messages.map((m) => (
             <MessageBubble
               key={m.id}
@@ -151,15 +151,15 @@ function MessageInput() {
   const [message, setMessage] = useState<string>("");
   const { channel } = useLoaderData<typeof clientLoader>();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const { dictolyClient } = useDictoly();
-  const [lastEvent, setLastEvent] = useState<string>("");
+  const { dactolyClient } = useDactoly();
+  const [lastEvent, setLastEvent] = useState<string>("stopTyping");
 
   useEffect(() => {
     const event = message.length > 0 ? "startTyping" : "stopTyping";
     if (lastEvent === event) return;
     setLastEvent(event);
-    dictoly.ws.emit(event, { channelId: channel.id });
-  }, [dictolyClient, message, channel, lastEvent]);
+    dactoly.ws.emit(event, channel.id);
+  }, [dactolyClient, message, channel, lastEvent]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

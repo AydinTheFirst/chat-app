@@ -1,6 +1,8 @@
-import type { User } from "dictoly.js";
+import { Link } from "react-router";
 
 import { CDN_URL } from "~/config";
+
+import type { User } from "dactoly.js";
 
 import { UserComponent, type UserComponentProps } from "./user-component";
 import UserStatus from "./user-status";
@@ -15,15 +17,17 @@ export default function UserCard({ user, ...props }: UserCardProps) {
     : undefined;
 
   return (
-    <UserComponent
-      avatarProps={{
-        name: user.profile?.displayName,
-        src: avatarSource
-      }}
-      description={<UserStatus userId={user.id} />}
-      isFocusable
-      name={user.profile?.displayName}
-      {...props}
-    />
+    <Link to={`/profile`}>
+      <UserComponent
+        avatarProps={{
+          name: user.profile?.displayName,
+          src: avatarSource
+        }}
+        description={<UserStatus userId={user.id} />}
+        isFocusable
+        name={user.profile?.displayName}
+        {...props}
+      />
+    </Link>
   );
 }

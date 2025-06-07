@@ -1,5 +1,5 @@
 {
-  "name": "dictoly",
+  "name": "dactoly",
   "private": true,
   "scripts": {
     "build": "turbo run build",

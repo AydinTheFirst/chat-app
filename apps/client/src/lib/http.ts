@@ -1,9 +1,9 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-import { dictoly } from "./dictoly";
+import { dactoly } from "./dactoly";
 
-const http = dictoly.http;
+const http = dactoly.http;
 
 const getToken = () => {
   if (typeof window === "undefined") return;

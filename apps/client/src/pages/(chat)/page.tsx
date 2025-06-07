@@ -17,7 +17,7 @@ export default function Page() {
             color='foreground'
             href='/'
           >
-            ChatApp
+            Dactoly
           </Link>
         </NavbarContent>
       </Navbar>

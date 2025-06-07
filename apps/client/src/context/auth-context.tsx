@@ -1,4 +1,4 @@
-import type { User } from "dictoly.js";
+import type { User } from "dactoly.js";
 
 import React, { createContext, useEffect, useState } from "react";
 import useSWR from "swr";

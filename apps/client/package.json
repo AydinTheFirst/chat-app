@@ -12,13 +12,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "dictoly.js": "workspace:^",
     "@heroui/react": "2.8.0-beta.6",
     "@internationalized/date": "^3.8.1",
     "@react-router/node": "^7.6.1",
     "@react-router/serve": "^7.6.1",
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.9.0",
+    "dactoly.js": "workspace:^",
     "emoji-picker-react": "^4.12.2",
     "framer-motion": "^12.15.0",
     "globals": "^16.2.0",
@@ -35,7 +35,8 @@
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.4",
     "swr": "^2.3.3",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

@@ -1,11 +1,11 @@
-import { DictolyClient } from '~/dictoly';
+import { DactolyClient } from '~/dactoly';
 import { CreateFriendshipDto } from '~/dtos';
 import { Friendship } from '~/models';
 
 import { BaseController } from './BaseController';
 
 export class FriendshipController extends BaseController {
-  constructor(private client: DictolyClient) {
+  constructor(private client: DactolyClient) {
     super();
   }
 

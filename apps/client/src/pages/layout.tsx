@@ -3,7 +3,7 @@ import { Outlet, useNavigation } from "react-router";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
 
-import { DictolyProvider } from "~/context/dictoly-context";
+import { DactolyProvider } from "~/context/dactoly-context";
 import { fetcher, handleError } from "~/lib/http";
 import { Providers } from "~/pages/provider";
 
@@ -27,9 +27,9 @@ export default function Layout() {
           isIndeterminate
           size='sm'
         />
-        <DictolyProvider>
+        <DactolyProvider>
           <Outlet />
-        </DictolyProvider>
+        </DactolyProvider>
         <Toaster richColors />
       </SWRConfig>
     </Providers>

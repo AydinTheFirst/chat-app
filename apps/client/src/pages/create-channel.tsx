@@ -14,7 +14,7 @@ import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
 import { StyledButton } from "~/components/styled-button";
-import { dictoly } from "~/lib/dictoly";
+import { dactoly } from "~/lib/dactoly";
 import { handleError } from "~/lib/http";
 import { getFormData } from "~/lib/utils";
 
@@ -28,7 +28,7 @@ export default function CreateChannel() {
     const formData = getFormData(event);
 
     try {
-      const channel = await dictoly.channels.create({
+      const channel = await dactoly.channels.create({
         name: formData.name
       });
       toast.success("Channel created successfully!");

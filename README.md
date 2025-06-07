@@ -1,7 +1,7 @@
-# Dictoly
+# Dactoly
 A simple chat application built with React and NestJS.
 
-<img src="https://github.com/AydinTheFirst/chat-app/blob/main/assets/screeen_shoot.png" alt="ChatApp Screenshot" width="600">
+<img src="https://github.com/AydinTheFirst/dactoly/blob/main/assets/screeen_shoot.png" alt="Dactoly Screenshot" width="600">
 
 ## Features
 - User registration and authentication
@@ -13,14 +13,6 @@ A simple chat application built with React and NestJS.
 - **Frontend**: React, TypeScript, Tailwind CSS
 - **Backend**: NestJS, TypeScript, WebSockets
 - **Database**: PostgreSQL, Prisma
-
-## TODO
-- [+] Add unit tests for frontend and backend
-- [ ] Advanced error handling
-- [ ] Add user profile editing
-- [ ] Mobile responsiveness
-- [ ] Implement message search functionality
-- [ ] Add notifications for new messages
 
 
 ### Contributing

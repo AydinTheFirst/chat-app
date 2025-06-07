@@ -10,7 +10,7 @@ import { CreateMessageDto, QueryMessageDto, UpdateMessageDto } from './messages.
 export class MessagesService extends QueryService<Message> {
   messageInclude: Prisma.MessageInclude = {
     author: { select: { id: true, profile: true, username: true } },
-    channel: true,
+    channel: { include: { lastMessage: true } },
   };
 
   constructor(
@@ -21,7 +21,7 @@ export class MessagesService extends QueryService<Message> {
   }
 
   async create(createMessageDto: CreateMessageDto, userId: string) {
-    const channel = await this.prisma.channel.findUnique({
+    const channel = await this.prisma.channel.findFirst({
       where: {
         id: createMessageDto.channelId,
         users: { some: { id: userId } },
@@ -46,6 +46,15 @@ export class MessagesService extends QueryService<Message> {
     });
 
     this.messagesGateway.emitMessageCreate(message);
+
+    await this.prisma.channel.update({
+      data: {
+        lastMessage: { connect: { id: message.id } },
+      },
+      where: {
+        id: message.channelId,
+      },
+    });
 
     return message;
   }

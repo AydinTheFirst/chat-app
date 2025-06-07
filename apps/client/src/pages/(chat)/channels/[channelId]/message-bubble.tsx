@@ -1,4 +1,4 @@
-import type { Message } from "dictoly.js";
+import type { Message } from "dactoly.js";
 
 import {
   Button,

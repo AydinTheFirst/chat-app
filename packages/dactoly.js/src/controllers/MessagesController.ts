@@ -1,11 +1,11 @@
-import { DictolyClient } from '~/dictoly';
+import { DactolyClient } from '~/dactoly';
 import { CreateMessageDto, UpdateMessageDto } from '~/dtos';
 import { Message } from '~/models';
 
 import { BaseController } from './BaseController';
 
 export class MessagesController extends BaseController {
-  constructor(private client: DictolyClient) {
+  constructor(private client: DactolyClient) {
     super();
   }
 

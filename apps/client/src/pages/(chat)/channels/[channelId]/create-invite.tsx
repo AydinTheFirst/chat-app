@@ -1,4 +1,4 @@
-import type { InviteLink } from "dictoly.js";
+import type { InviteLink } from "dactoly.js";
 
 import {
   Button,

@@ -1,9 +1,9 @@
-import type { User } from "dictoly.js";
+import type { User } from "dactoly.js";
 
 import { useEffect, useState } from "react";
 
 import { useAuth } from "~/hooks/use-auth";
-import { useDictoly } from "~/hooks/use-dictoly";
+import { useDactoly } from "~/hooks/use-dactoly";
 
 interface TypingIndicatorProps {
   channelId: string;
@@ -16,7 +16,7 @@ interface TypingPayload {
 
 export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
   const [typingUsers, setTypingUsers] = useState<User[]>([]);
-  const { dictolyClient } = useDictoly();
+  const { dactolyClient } = useDactoly();
   const { user: currentUser } = useAuth();
 
   const addUserTyping = (user: User) => {
@@ -31,7 +31,7 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
   };
 
   useEffect(() => {
-    dictolyClient.ws.on("startTyping", (payload: TypingPayload) => {
+    dactolyClient.ws.on("startTyping", (payload: TypingPayload) => {
       if (payload.user.id === currentUser.id) return;
 
       if (payload.channelId === channelId) {
@@ -39,7 +39,7 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
       }
     });
 
-    dictolyClient.ws.on("stopTyping", (payload: TypingPayload) => {
+    dactolyClient.ws.on("stopTyping", (payload: TypingPayload) => {
       if (payload.user.id === currentUser.id) return;
 
       if (payload.channelId === channelId) {
@@ -48,10 +48,10 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
     });
 
     return () => {
-      dictolyClient.ws.off("startTyping");
-      dictolyClient.ws.off("stopTyping");
+      dactolyClient.ws.off("startTyping");
+      dactolyClient.ws.off("stopTyping");
     };
-  }, [dictolyClient, channelId, currentUser]);
+  }, [dactolyClient, channelId, currentUser]);
 
   if (typingUsers.length === 0) {
     return;

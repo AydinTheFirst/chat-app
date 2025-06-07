@@ -74,8 +74,9 @@ model Message {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
-  channelId String
-  channel   Channel @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
+  channelId          String
+  channel            Channel  @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
+  channelLastMessage Channel? @relation("LastMessage")
 
   editedAt  DateTime?
   createdAt DateTime  @default(now())
@@ -92,7 +93,10 @@ model Channel {
   type     ChannelType @default(GROUP)
   isPublic Boolean     @default(false)
 
-  messages    Message[]    @relation("ChannelMessages")
+  messages      Message[] @relation("ChannelMessages")
+  lastMessage   Message?  @relation("LastMessage", fields: [lastMessageId], references: [id])
+  lastMessageId String?   @unique
+
   inviteLinks InviteLink[]
   users       User[]       @relation("ChannelUsers")
 

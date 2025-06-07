@@ -1,4 +1,4 @@
-import type { Channel } from "server-types";
+import type { Channel } from "dactoly.js";
 
 import {
   Button,
@@ -8,7 +8,7 @@ import {
   NavbarContent,
   useDisclosure
 } from "@heroui/react";
-import { Friendship, plainToInstance, User } from "dictoly.js";
+import { Friendship, plainToInstance, User } from "dactoly.js";
 import {
   LucideMessageSquare,
   LucideUserCheck2,
@@ -20,15 +20,15 @@ import { toast } from "sonner";
 import ConfirmModal from "~/components/confirm-modal";
 import UserCard from "~/components/user-card";
 import { useAuth } from "~/hooks/use-auth";
-import { dictoly } from "~/lib/dictoly";
+import { dactoly } from "~/lib/dactoly";
 import { handleError, http } from "~/lib/http";
 
 import SidebarToggler from "../sidebar-toggler";
 import AddFriend from "./add-friend";
 
 export const clientLoader = async () => {
-  const friends = await dictoly.friendships.getAll();
-  const pending = await dictoly.friendships.getPending();
+  const friends = await dactoly.friendships.getAll();
+  const pending = await dactoly.friendships.getPending();
   return { friends, pending };
 };
 

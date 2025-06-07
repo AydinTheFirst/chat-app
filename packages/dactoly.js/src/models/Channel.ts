@@ -20,6 +20,13 @@ export class Channel extends BaseModel {
 
   @Expose()
   @Type(() => Message)
+  lastMessage?: Message;
+
+  @Expose()
+  lastMessageId?: string;
+
+  @Expose()
+  @Type(() => Message)
   messages?: Message[];
 
   @Expose()

@@ -1,9 +1,27 @@
-import type { Channel } from "dictoly.js";
 import type React from "react";
 
-import { type User } from "dictoly.js";
+import type { Channel } from "dactoly.js";
 
-import { CDN_URL } from "~/config";
+export function getChannelDisplayInfo(channel: Channel, selfUserId: string) {
+  const isDM = channel.type === "DM";
+
+  if (isDM) {
+    const otherUser = channel.users?.find((user) => user.id !== selfUserId);
+    return {
+      ...channel,
+      description: otherUser?.username || "Unknown User",
+      displayName: otherUser?.profile?.displayName || "Unknown User",
+      icon: otherUser?.profile?.avatarUrl || null
+    };
+  }
+
+  return {
+    ...channel,
+    description: channel.description || "No Description",
+    displayName: channel.name,
+    icon: null
+  };
+}
 
 export function getFormData(e: React.FormEvent<HTMLFormElement>) {
   const formData = new FormData(e.currentTarget);
@@ -17,27 +35,3 @@ export function getFormData(e: React.FormEvent<HTMLFormElement>) {
 
   return data;
 }
-
-export const getChannelInfo = (channel: Channel, currentUser: User) => {
-  switch (channel.type) {
-    case "DM": {
-      const user = channel.users?.find((u) => u.id !== currentUser.id);
-
-      const description = user?.profile?.displayName || "Unknown User";
-      const name = user?.username || "Unknown User";
-      const icon = user?.profile?.avatarUrl
-        ? new URL(user.profile.avatarUrl, CDN_URL).toString()
-        : null;
-
-      return { description, icon, isDM: true, name, user };
-    }
-
-    case "GROUP":
-      return {
-        description: channel.description || "No description",
-        icon: null,
-        isDM: false,
-        name: channel.name
-      };
-  }
-};

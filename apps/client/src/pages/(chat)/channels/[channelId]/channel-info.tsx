@@ -1,4 +1,4 @@
-import type { Channel, User } from "dictoly.js";
+import type { Channel, User } from "dactoly.js";
 
 import {
   Button,
@@ -9,16 +9,15 @@ import {
   ModalHeader,
   useDisclosure
 } from "@heroui/react";
-import { LucideUserX2 } from "lucide-react";
+import { LucideInfo, LucideUserX2 } from "lucide-react";
 import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
 import ConfirmModal from "~/components/confirm-modal";
 import UserCard from "~/components/user-card";
-import { UserComponent } from "~/components/user-component";
 import { useAuth } from "~/hooks/use-auth";
 import { handleError, http } from "~/lib/http";
-import { getChannelInfo } from "~/lib/utils";
+import { getChannelDisplayInfo } from "~/lib/utils";
 
 interface ChannelInfoModalProps {
   channel: Channel;
@@ -39,7 +38,7 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
 
   const { user: currentUser } = useAuth();
 
-  const channelInfo = getChannelInfo(channel, currentUser);
+  const channelInfo = getChannelDisplayInfo(channel, currentUser.id);
 
   const handleLeave = async () => {
     try {
@@ -74,23 +73,13 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
 
   return (
     <>
-      <button
-        className='cursor-pointer'
-        onClick={onOpen}
+      <Button
+        isIconOnly
+        onPress={onOpen}
+        variant='light'
       >
-        {channelInfo.isDM ? (
-          <UserCard user={channelInfo.user ?? currentUser} />
-        ) : (
-          <UserComponent
-            avatarProps={{
-              name: channelInfo.name,
-              src: channelInfo.icon ?? undefined
-            }}
-            description={channelInfo.description}
-            name={channelInfo.name}
-          />
-        )}
-      </button>
+        <LucideInfo />
+      </Button>
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -98,7 +87,7 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
       >
         <ModalContent>
           <ModalHeader className='flex flex-col gap-1'>
-            <h2>{channelInfo.name}</h2>
+            <h2>{channelInfo.displayName}</h2>
             <p className='text-sm text-gray-500'>{channelInfo.description}</p>
           </ModalHeader>
           <ModalBody>

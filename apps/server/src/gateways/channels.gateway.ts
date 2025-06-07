@@ -29,32 +29,22 @@ export class ChannelsGateway {
   }
 
   @SubscribeMessage('startTyping')
-  handleStartTyping(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { channelId: string },
-  ) {
+  handleStartTyping(@ConnectedSocket() client: Socket, @MessageBody() channelId: string) {
     const user = client.data.user as User;
     if (!user) return;
 
-    this.logger.log(
-      `User ${user.username} (${user.id}) started typing in channel ${payload.channelId}`,
-    );
+    this.logger.log(`User ${user.username} (${user.id}) started typing in channel ${channelId}`);
 
-    this.server.to(payload.channelId).emit('startTyping', { channelId: payload.channelId, user });
+    this.server.to(channelId).emit('startTyping', { channelId: channelId, user });
   }
 
   @SubscribeMessage('stopTyping')
-  handleStopTyping(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { channelId: string },
-  ) {
+  handleStopTyping(@ConnectedSocket() client: Socket, @MessageBody() channelId: string) {
     const user = client.data.user as User;
     if (!user) return;
 
-    this.logger.log(
-      `User ${user.username} (${user.id}) stopped typing in channel ${payload.channelId}`,
-    );
+    this.logger.log(`User ${user.username} (${user.id}) stopped typing in channel ${channelId}`);
 
-    this.server.to(payload.channelId).emit('stopTyping', { channelId: payload.channelId, user });
+    this.server.to(channelId).emit('stopTyping', { channelId: channelId, user });
   }
 }

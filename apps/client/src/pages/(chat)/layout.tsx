@@ -1,23 +1,32 @@
 import { cn } from "@heroui/react";
+import { Channel, plainToInstance } from "dactoly.js";
 import { useEffect } from "react";
-import { Outlet, useLocation } from "react-router";
+import { Outlet, useLoaderData, useLocation } from "react-router";
 
 import { AuthProvider } from "~/context/auth-context";
 import { SidebarProvider } from "~/context/sidebar-context";
 import { useSidebar } from "~/hooks/use-sidebar";
 import { useDevice } from "~/hooks/use-viewport";
-import { dictoly } from "~/lib/dictoly";
+import { dactoly } from "~/lib/dactoly";
+import { useChannelStore } from "~/store/channel-store";
 
 import Sidebar from "./sidebar";
 
 const SIDEBAR_WIDTH = 320; // px
 
 export const clientLoader = async () => {
-  const channels = await dictoly.channels.getAll();
+  const channels = await dactoly.channels.getAll();
   return { channels };
 };
 
 export default function Layout() {
+  const { channels } = useLoaderData<typeof clientLoader>();
+  const setChannels = useChannelStore((s) => s.setChannels);
+
+  useEffect(() => {
+    setChannels(plainToInstance(Channel, channels));
+  }, [channels, setChannels]);
+
   return (
     <AuthProvider>
       <SidebarProvider>

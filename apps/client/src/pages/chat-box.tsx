@@ -1,7 +1,11 @@
-import type { Channel } from "dictoly.js";
-
-import { Avatar, Card, CardBody, Link } from "@heroui/react";
+import { Card, CardBody, Link } from "@heroui/react";
 import { useLocation } from "react-router";
+
+import CdnAvatar from "~/components/cdn-avatar";
+import { useAuth } from "~/hooks/use-auth";
+import { getChannelDisplayInfo } from "~/lib/utils";
+
+import type { Channel } from "dactoly.js";
 
 interface ChatBoxProps {
   channel: Channel;
@@ -9,8 +13,11 @@ interface ChatBoxProps {
 
 export default function ChatBox(props: ChatBoxProps) {
   const { channel } = props;
+  const { user: currentUser } = useAuth();
 
   const { pathname } = useLocation();
+
+  const channelInfo = getChannelDisplayInfo(channel, currentUser.id);
 
   return (
     <Card
@@ -22,14 +29,17 @@ export default function ChatBox(props: ChatBoxProps) {
     >
       <CardBody>
         <div className='flex items-center gap-3'>
-          <Avatar className='flex-shrink-0' />
+          <CdnAvatar
+            className='flex-shrink-0'
+            name={channelInfo.displayName}
+            {...(channelInfo.icon && { src: channelInfo.icon })}
+          />
           <div className='flex min-w-0 flex-col'>
-            <span className='truncate'>{channel.name}</span>
+            <span className='truncate'>{channelInfo.displayName}</span>
             <p className='truncate text-sm text-gray-500'>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Itaque
-              facilis reprehenderit dolore aspernatur odio reiciendis,
-              doloremque explicabo excepturi qui esse eum cupiditate alias
-              perferendis quos doloribus optio velit ducimus harum?
+              {channel.lastMessage
+                ? channel.lastMessage.content
+                : "No messages yet. Start the conversation!"}
             </p>
             <div className='m-1' />
             <span className='text-end text-xs text-gray-500'>

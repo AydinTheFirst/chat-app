@@ -1,5 +1,7 @@
 import { Logger } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
@@ -20,79 +22,80 @@ export class StatusGateway implements OnGatewayDisconnect {
 
   private logger = new Logger(StatusGateway.name);
 
-  private userSockets = new Map<string, Set<string>>();
+  // socket.id -> Set<targetUserId>
+  private subscriptions = new Map<string, Set<string>>();
+
+  // userId -> status
   private userStatuses = new Map<string, UserStatus['status']>();
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(@ConnectedSocket() client: Socket) {
     const user = client.data.user as User;
-    if (!user) return;
+    this.subscriptions.delete(client.id);
 
-    this.userStatuses.delete(user.id);
-    this.broadcastStatus(user.id, 'offline');
-    this.unsubscribeFromUserStatus(user.id, client.id);
-
-    this.logger.log(`Client disconnected: ${client.id} as user ${user.username}`);
-  }
-
-  @SubscribeMessage('getStatus')
-  handleGetStatus(client: Socket, userId: string) {
-    const user = client.data.user as User;
-    if (!user) {
-      this.logger.warn(`Received status request from unauthenticated client: ${client.id}`);
-      return;
+    if (user) {
+      this.userStatuses.delete(user.id);
+      this.broadcastStatus(user.id, 'offline');
+      this.logger.log(`Client disconnected: ${client.id} as user ${user.username}`);
+    } else {
+      this.logger.log(`Client disconnected: ${client.id}`);
     }
-
-    const status = this.userStatuses.get(userId) || 'offline';
-    this.subscribeToUserStatus(userId, client.id);
-
-    client.emit('userStatus', { status, userId });
   }
 
   @SubscribeMessage('updateStatus')
-  handleUpdateStatus(client: Socket, payload: { status: UserStatus['status'] }) {
+  handleUpdateStatus(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() status: UserStatus['status'],
+  ) {
     const user = client.data.user as User;
     if (!user) {
       this.logger.warn(`Received status update from unauthenticated client: ${client.id}`);
       return;
     }
 
-    this.logger.log(
-      `Received status update from user ${user.username} (${user.id}): ${payload.status}`,
-    );
+    this.logger.log(`Received status update from user ${user.username} (${user.id}): ${status}`);
 
-    this.userStatuses.set(user.id, payload.status);
-    this.broadcastStatus(user.id, payload.status);
+    this.userStatuses.set(user.id, status);
+    this.broadcastStatus(user.id, status);
   }
 
-  subscribeToUserStatus(userId: string, socketId: string) {
-    if (!this.userSockets.has(userId)) {
-      this.userSockets.set(userId, new Set());
+  @SubscribeMessage('subscribeStatus')
+  subscribeToUserStatus(@ConnectedSocket() socket: Socket, @MessageBody() targetUserId: string) {
+    if (!this.subscriptions.has(socket.id)) {
+      this.subscriptions.set(socket.id, new Set());
     }
-    this.userSockets.get(userId).add(socketId);
 
-    this.logger.log(`Subscribed socket ${socketId} to user ${userId}`);
+    this.subscriptions.get(socket.id).add(targetUserId);
+
+    const status = this.userStatuses.get(targetUserId) || 'offline';
+    socket.emit('userStatus', { status, userId: targetUserId });
+
+    this.logger.log(`Socket ${socket.id} subscribed to user ${targetUserId}`);
   }
 
-  unsubscribeFromUserStatus(userId: string, socketId: string) {
-    const sockets = this.userSockets.get(userId);
-    if (sockets) {
-      sockets.delete(socketId);
-      if (sockets.size === 0) {
-        this.userSockets.delete(userId);
+  @SubscribeMessage('unsubscribeStatus')
+  unsubscribeFromUserStatus(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() targetUserId: string,
+  ) {
+    const targets = this.subscriptions.get(socket.id);
+
+    if (targets) {
+      targets.delete(targetUserId);
+      if (targets.size === 0) {
+        this.subscriptions.delete(socket.id);
       }
     }
 
-    this.logger.log(`Unsubscribed socket ${socketId} from user ${userId}`);
+    this.logger.log(`Socket ${socket.id} unsubscribed from user ${targetUserId}`);
   }
 
   private broadcastStatus(userId: string, status: UserStatus['status']) {
-    const sockets = this.userSockets.get(userId);
-    if (!sockets) return;
-
-    this.logger.log(`Broadcasting status ${status} for user ${userId} to ${sockets.size} sockets`);
-
-    for (const socketId of sockets) {
-      this.server.to(socketId).emit('userStatus', { status, userId });
+    for (const [socketId, targetIds] of this.subscriptions.entries()) {
+      if (targetIds.has(userId)) {
+        this.server.to(socketId).emit('userStatus', { status, userId });
+      }
     }
+
+    this.logger.log(`Broadcasted status ${status} for user ${userId}`);
   }
 }

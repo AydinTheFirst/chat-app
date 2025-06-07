@@ -1,24 +1,21 @@
 import { AxiosInstance } from 'axios';
-import { Socket } from 'socket.io-client';
 
 import { ChannelsController, FriendshipController, MessagesController } from '~/controllers';
-import { createInstance } from '~/lib';
+import { DactolySocket } from '~/events';
+import { createInstance, createWebsocket } from '~/lib';
+import { DactolyClientConfig } from '~/types';
 
-import { createWebsocket } from './lib/socket';
-
-export class DictolyClient {
+export class DactolyClient {
   public channels = new ChannelsController(this);
   public friendships = new FriendshipController(this);
   public messages = new MessagesController(this);
 
   // eslint-disable-next-line perfectionist/sort-classes
   public http: AxiosInstance;
-  public ws: Socket;
+  public ws: DactolySocket;
 
-  constructor(token: string, baseURL?: string) {
-    console.log('Hello world');
-
-    this.http = createInstance(token, baseURL);
-    this.ws = createWebsocket(token, baseURL);
+  constructor(config: DactolyClientConfig) {
+    this.http = createInstance(config);
+    this.ws = createWebsocket(config);
   }
 }

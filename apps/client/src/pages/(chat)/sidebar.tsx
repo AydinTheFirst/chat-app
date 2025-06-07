@@ -9,29 +9,28 @@ import {
   Input,
   Link
 } from "@heroui/react";
-import { Channel, plainToInstance } from "dictoly.js";
+import { Channel, plainToInstance } from "dactoly.js";
 import { LucideEllipsisVertical, LucideSearch, LucideUser } from "lucide-react";
 import React from "react";
-import { useLoaderData } from "react-router";
 
 import ToggleTheme from "~/components/toggle-theme";
 import UserCard from "~/components/user-card";
 import { useAuth } from "~/hooks/use-auth";
-
-import type { clientLoader } from "./layout";
+import { useChannelStore } from "~/store/channel-store";
 
 import ChatBox from "../chat-box";
 import CreateChannel from "../create-channel";
 import SidebarToggler from "./sidebar-toggler";
 
 export default function Sidebar() {
-  const { channels } = useLoaderData<typeof clientLoader>();
   const [searchTerm, setSearchTerm] = React.useState("");
   const { user: currentUser } = useAuth();
 
-  const filteredChannels = channels.filter((channel) =>
-    channel.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const channels = Object.values(useChannelStore((s) => s.channels));
+
+  const filteredChannels = channels.filter((c) => {
+    return c.name.includes(searchTerm);
+  });
 
   return (
     <Card
@@ -46,7 +45,7 @@ export default function Sidebar() {
               color='foreground'
               href='/'
             >
-              ChatApp
+              Dactoly
             </Link>
             <SidebarToggler className='md:hidden' />
           </div>
@@ -96,7 +95,7 @@ export default function Sidebar() {
         </div>
         {filteredChannels.length === 0 && (
           <div className='text-center text-gray-500'>
-            No channels found. Create a new channel to start chatting!
+            No channel found. Create a new channel to start chatting!
           </div>
         )}
       </CardBody>
