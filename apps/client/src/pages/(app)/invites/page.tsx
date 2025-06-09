@@ -1,9 +1,9 @@
-import type { Channel } from "server-types";
-
-import React, { useEffect } from "react";
+import { Channel, plainToInstance } from "dactoly.js";
+import { useEffect } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 
 import { http } from "~/lib/http";
+import { useChannelStore } from "~/store/channel-store";
 
 import type { Route } from "../+types/page";
 
@@ -26,6 +26,7 @@ export const clientLoader = async ({ request }: Route.ClientLoaderArgs) => {
 
 export default function Page() {
   const navigate = useNavigate();
+  const addChannel = useChannelStore((s) => s.addChannel);
   const { channel } = useLoaderData<typeof clientLoader>();
 
   useEffect(() => {
@@ -34,8 +35,10 @@ export default function Page() {
       return;
     }
 
+    addChannel(plainToInstance(Channel, channel));
+
     navigate(`/channels/${channel.id}`);
-  }, [channel, navigate]);
+  }, [channel, navigate, addChannel]);
 
   return (
     <div className='flex h-screen items-center justify-center'>

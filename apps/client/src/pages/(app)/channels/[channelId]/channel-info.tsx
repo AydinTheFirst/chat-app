@@ -89,6 +89,11 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
           <ModalHeader className='flex flex-col gap-1'>
             <h2>{channelInfo.displayName}</h2>
             <p className='text-sm text-gray-500'>{channelInfo.description}</p>
+            {!isDM && (
+              <p className='text-sm text-gray-500'>
+                Owner: {channel.owner?.username}
+              </p>
+            )}
           </ModalHeader>
           <ModalBody>
             <h2 className='mb-3 text-lg font-bold'>
@@ -158,7 +163,7 @@ function ChannelUser({ channel, user }: ChannelUserProps) {
 
   const handleKick = async () => {
     try {
-      http.delete(`/channels/${channel.id}/kick/${user.id}`);
+      await http.delete(`/channels/${channel.id}/kick/${user.id}`);
       toast.success("User kicked successfully!");
       revalidator.revalidate();
     } catch (error) {
@@ -167,6 +172,7 @@ function ChannelUser({ channel, user }: ChannelUserProps) {
   };
 
   const isOwner = channel.ownerId === currentUser?.id;
+  const isCurrentUser = user.id === currentUser?.id;
   const isDM = channel.type === "DM";
 
   return (
@@ -174,14 +180,14 @@ function ChannelUser({ channel, user }: ChannelUserProps) {
       <div className='flex items-center justify-between'>
         <UserCard user={user} />
         <div className='flex gap-3'>
-          {isOwner && !isDM && (
+          {isOwner && !isCurrentUser && !isDM && (
             <Button
               color='danger'
               isIconOnly
               onPress={kickModal.onOpen}
               variant='light'
             >
-              <LucideUserX2 className='h-5 w-5' />
+              <LucideUserX2 />
             </Button>
           )}
         </div>

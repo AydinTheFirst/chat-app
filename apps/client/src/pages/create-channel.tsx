@@ -17,11 +17,13 @@ import { StyledButton } from "~/components/styled-button";
 import { dactoly } from "~/lib/dactoly";
 import { handleError } from "~/lib/http";
 import { getFormData } from "~/lib/utils";
+import { useChannelStore } from "~/store/channel-store";
 
 export default function CreateChannel() {
   const { isOpen, onClose, onOpen, onOpenChange } = useDisclosure();
   const revalidator = useRevalidator();
   const navigate = useNavigate();
+  const addChannel = useChannelStore((s) => s.addChannel);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,6 +36,7 @@ export default function CreateChannel() {
       toast.success("Channel created successfully!");
       onClose();
       revalidator.revalidate();
+      addChannel(channel);
       navigate(`/channels/${channel.id}`);
     } catch (error) {
       handleError(error);

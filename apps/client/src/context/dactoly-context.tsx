@@ -3,6 +3,7 @@ import type { DactolyClient } from "dactoly.js";
 import React from "react";
 
 import { dactoly } from "~/lib/dactoly";
+import { initSocketEvents } from "~/lib/ws-handler";
 
 interface DactolyContextType {
   dactolyClient: DactolyClient;
@@ -21,20 +22,30 @@ export const DactolyProvider = ({
 
   React.useEffect(() => {
     const client = dactolyClientRef.current;
+    const socket = client.ws;
 
-    client.ws.connect();
+    socket.connect();
 
-    client.ws.onAny((event: string, ...args: unknown[]) => {
-      console.log(`WebSocket event: ${event}`, ...args);
+    socket.on("connect", () => {
+      initSocketEvents();
     });
 
-    client.ws.on("authSuccess", () => {
-      client.ws.emit("updateStatus", "online");
+    socket.onAny((event: string, ...args: unknown[]) => {
+      console.log(`WebSocket coming event: ${event}`, ...args);
+    });
+
+    socket.onAnyOutgoing((event: string, ...args: unknown[]) => {
+      console.log(`WebSocket outgoing event: ${event}`, ...args);
+    });
+
+    socket.on("authSuccess", () => {
+      socket.emit("updateStatus", "online");
     });
 
     return () => {
-      client.ws.off("authSuccess");
-      client.ws.offAny();
+      socket.off("authSuccess");
+      socket.offAny();
+      socket.disconnect();
     };
   }, []);
 

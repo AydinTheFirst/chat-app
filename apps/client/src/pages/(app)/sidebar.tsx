@@ -4,33 +4,27 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
-  Chip,
   Divider,
-  Input,
+  Image,
   Link
 } from "@heroui/react";
-import { Channel, plainToInstance } from "dactoly.js";
-import { LucideEllipsisVertical, LucideSearch, LucideUser } from "lucide-react";
-import React from "react";
+import { LucideEllipsisVertical, LucideUser } from "lucide-react";
 
 import ToggleTheme from "~/components/toggle-theme";
 import UserCard from "~/components/user-card";
 import { useAuth } from "~/hooks/use-auth";
 import { useChannelStore } from "~/store/channel-store";
 
+import SidebarToggler from "../../components/sidebar-toggler";
 import ChatBox from "../chat-box";
 import CreateChannel from "../create-channel";
-import SidebarToggler from "./sidebar-toggler";
 
 export default function Sidebar() {
-  const [searchTerm, setSearchTerm] = React.useState("");
   const { user: currentUser } = useAuth();
 
   const channels = Object.values(useChannelStore((s) => s.channels));
 
-  const filteredChannels = channels.filter((c) => {
-    return c.name.includes(searchTerm);
-  });
+  const filteredChannels = channels.filter(() => true);
 
   return (
     <Card
@@ -45,7 +39,12 @@ export default function Sidebar() {
               color='foreground'
               href='/'
             >
-              Dactoly
+              <Image
+                alt='Dactoly Logo'
+                className='h-10 w-10'
+                radius='none'
+                src='/logo.png'
+              />
             </Link>
             <SidebarToggler className='md:hidden' />
           </div>
@@ -61,23 +60,7 @@ export default function Sidebar() {
             </Button>
           </div>
         </div>
-
-        <Input
-          fullWidth
-          onValueChange={setSearchTerm}
-          placeholder='Search for channels'
-          startContent={<LucideSearch className='h-5 w-5' />}
-          variant='faded'
-        />
-
-        <div className='flex gap-1'>
-          <Chip color='primary'>All</Chip>
-          <Chip>Unread</Chip>
-          <Chip>Favorites</Chip>
-          <Chip>Secret</Chip>
-        </div>
       </CardHeader>
-
       <CardBody>
         <h2 className='mb-3 text-xl font-bold'>
           Channels
@@ -88,7 +71,7 @@ export default function Sidebar() {
         <div className='grid gap-3'>
           {filteredChannels.map((channel, i) => (
             <ChatBox
-              channel={plainToInstance(Channel, channel)}
+              channelId={channel.id}
               key={i}
             />
           ))}
@@ -103,7 +86,10 @@ export default function Sidebar() {
       <CardFooter>
         {currentUser && (
           <div className='flex w-full items-center justify-between gap-3'>
-            <UserCard user={currentUser} />
+            <UserCard
+              className='m-0'
+              user={currentUser}
+            />
             <div className='flex items-center gap-2'>
               <ToggleTheme />
               <Button

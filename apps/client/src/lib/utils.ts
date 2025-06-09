@@ -1,6 +1,5 @@
-import type React from "react";
-
 import type { Channel } from "dactoly.js";
+import type React from "react";
 
 export function getChannelDisplayInfo(channel: Channel, selfUserId: string) {
   const isDM = channel.type === "DM";

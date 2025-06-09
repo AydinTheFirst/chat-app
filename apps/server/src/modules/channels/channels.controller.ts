@@ -54,10 +54,10 @@ export class ChannelsController {
   @Delete(':id/kick/:userId')
   kickUser(
     @Param('id') id: string,
-    @Param('userId') userId: string,
-    @GetUser('id') requesterId: string,
+    @GetUser('id') userId: string,
+    @Param('userId') targetUserId: string,
   ) {
-    return this.channelsService.kickUserFromChannel(id, userId, requesterId);
+    return this.channelsService.kickUserFromChannel(id, userId, targetUserId);
   }
 
   @Delete(':id/leave')

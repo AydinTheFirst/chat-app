@@ -1,19 +1,19 @@
 import { Image, Link, Navbar, NavbarContent } from "@heroui/react";
 import { LucideCode2 } from "lucide-react";
 
-import SidebarToggler from "./sidebar-toggler";
+import SidebarToggler from "~/components/sidebar-toggler";
 
 export default function Page() {
   return (
     <div className='flex min-h-screen flex-col gap-3'>
       <Navbar
-        className='bg-content1'
+        className='bg-content1 shadow'
         maxWidth='full'
       >
         <NavbarContent justify='start'>
           <SidebarToggler className='md:hidden' />
           <Link
-            className='text-3xl font-bold'
+            className='text-2xl font-bold'
             color='foreground'
             href='/'
           >
@@ -21,14 +21,14 @@ export default function Page() {
           </Link>
         </NavbarContent>
       </Navbar>
-      <div className='flex-1'>
+      <div className='flex-1 text-center'>
         <main className='flex flex-col items-center justify-center gap-3 p-4'>
           <Image
             alt='Group Chat'
             className='h-96 w-full'
-            src='/assets/undraw_group-chat.svg'
+            src='/dactoly.png'
           />
-          <h2 className='text-2xl font-bold'>Welcome to Chat Application</h2>
+          <h2 className='text-2xl font-bold'>Welcome to Dactoly</h2>
           <p className='max-w-xl text-gray-400'>
             This is a simple chat application built with React, Nest.js, and
             TypeScript. It allows users to create accounts, log in, and chat

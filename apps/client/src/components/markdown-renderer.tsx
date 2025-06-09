@@ -3,17 +3,13 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import onedark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark";
 import remarkGfm from "remark-gfm";
 
-interface Props {
-  content: string;
-}
-
-export function MarkdownRenderer({ content }: Props) {
+export function MarkdownRenderer({ children }: React.PropsWithChildren) {
   return (
     <ReactMarkdown
       components={{
         a: (props) => (
           <a
-            className='underline'
+            className='text-blue-500 hover:underline'
             {...props}
             rel='noopener noreferrer'
             target='_blank'
@@ -30,7 +26,7 @@ export function MarkdownRenderer({ content }: Props) {
       }}
       remarkPlugins={[remarkGfm]}
     >
-      {content}
+      {children?.toString()}
     </ReactMarkdown>
   );
 }

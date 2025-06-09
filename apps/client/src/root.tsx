@@ -34,6 +34,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           content='width=device-width, initial-scale=1'
           name='viewport'
         />
+        <link
+          href='/logo.png'
+          rel='shortcut icon'
+          type='image/x-icon'
+        />
         <Meta />
         <Links />
       </head>

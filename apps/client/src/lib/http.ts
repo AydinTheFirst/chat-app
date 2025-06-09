@@ -3,23 +3,7 @@ import { toast } from "sonner";
 
 import { dactoly } from "./dactoly";
 
-const http = dactoly.http;
-
-const getToken = () => {
-  if (typeof window === "undefined") return;
-
-  return localStorage.getItem("token");
-};
-
-http.interceptors.request.use(async (request) => {
-  const token = getToken();
-
-  if (token) {
-    request.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return request;
-});
+const { http } = dactoly;
 
 const handleError = (error: unknown) => {
   if (!axios.isAxiosError(error)) {

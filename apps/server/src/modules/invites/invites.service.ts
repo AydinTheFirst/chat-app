@@ -3,9 +3,14 @@ import crypto from 'crypto';
 
 import { PrismaService } from '~/database';
 
+import { ChannelsService } from '../channels';
+
 @Injectable()
 export class InvitesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private channelsService: ChannelsService,
+  ) {}
 
   async create(channelId: string, userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -51,14 +56,7 @@ export class InvitesService {
       return invite.channel;
     }
 
-    await this.prisma.channel.update({
-      data: {
-        users: {
-          connect: { id: userId },
-        },
-      },
-      where: { id: invite.channelId },
-    });
+    await this.channelsService.joinChannel(invite.channelId, userId);
 
     return invite.channel;
   }

@@ -1,7 +1,7 @@
 # Dactoly
 A simple chat application built with React and NestJS.
 
-<img src="https://github.com/AydinTheFirst/dactoly/blob/main/assets/screeen_shoot.png" alt="Dactoly Screenshot" width="600">
+<img src="https://github.com/AydinTheFirst/dactoly/blob/main/assets/screeen_shoot.png" alt="Dactoly" width="600" height="400">
 
 ## Features
 - User registration and authentication

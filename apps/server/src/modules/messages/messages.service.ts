@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { QueryService } from '~/common/services/query.service';
 import { Message, Prisma, PrismaService } from '~/database';
@@ -88,12 +88,40 @@ export class MessagesService extends QueryService<Message> {
   async remove(id: string, userId: string) {
     await this.findOne(id, userId);
 
-    const message = await this.prisma.message.delete({
+    const message = await this.prisma.message.update({
+      data: {
+        content: 'null',
+        deletedAt: new Date(),
+      },
       include: this.messageInclude,
       where: { id },
     });
 
     this.messagesGateway.emitMessageDelete(message);
+
+    return message;
+  }
+
+  async sendSystemMessage(channelId: string, content: string) {
+    const channel = await this.prisma.channel.findFirst({
+      where: {
+        id: channelId,
+      },
+    });
+
+    if (!channel) {
+      throw new BadRequestException();
+    }
+
+    const message = await this.prisma.message.create({
+      data: {
+        channel: { connect: { id: channelId } },
+        content,
+        type: 'SYSTEM',
+      },
+    });
+
+    this.messagesGateway.emitMessageCreate(message);
 
     return message;
   }

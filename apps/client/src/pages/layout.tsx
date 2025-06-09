@@ -1,11 +1,27 @@
 import { Progress } from "@heroui/react";
-import { Outlet, useNavigation } from "react-router";
+import { type MetaFunction, Outlet, useNavigation } from "react-router";
 import { Toaster } from "sonner";
 import { SWRConfig } from "swr";
 
 import { DactolyProvider } from "~/context/dactoly-context";
 import { fetcher, handleError } from "~/lib/http";
 import { Providers } from "~/pages/provider";
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Dactoly" },
+    {
+      content:
+        "Dactoly is a modern, open-source chat application built with React and Nest.js",
+      name: "description"
+    },
+    {
+      content: "Dactoly, chat, open-source, React, Nest.js",
+      name: "keywords"
+    },
+    { content: "index, follow", name: "robots" }
+  ];
+};
 
 export default function Layout() {
   const navigation = useNavigation();

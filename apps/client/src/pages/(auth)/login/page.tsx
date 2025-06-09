@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Link } from "@heroui/react";
+import { Card, CardBody, CardHeader, Input, Link } from "@heroui/react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -6,7 +6,6 @@ import { Heading } from "~/components/heading";
 import OrDivider from "~/components/or";
 import PasswordInput from "~/components/password-input";
 import { StyledButton } from "~/components/styled-button";
-import { StyledInput } from "~/components/styled-input";
 import { handleError, http, saveToken } from "~/lib/http";
 
 export default function Login() {
@@ -32,7 +31,7 @@ export default function Login() {
   return (
     <div className='center container h-screen'>
       <Card
-        className='w-full max-w-md bg-transparent'
+        className='w-full max-w-md'
         shadow='none'
       >
         <CardHeader className='flex flex-col gap-2'>
@@ -51,7 +50,7 @@ export default function Login() {
             className='grid gap-3'
             onSubmit={handleSubmit}
           >
-            <StyledInput
+            <Input
               description='Enter your username or email address.'
               isRequired
               label='Username'

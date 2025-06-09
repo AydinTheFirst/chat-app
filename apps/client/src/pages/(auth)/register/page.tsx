@@ -30,7 +30,7 @@ export default function Register() {
   return (
     <div className='center container h-screen'>
       <Card
-        className='w-full max-w-md bg-transparent'
+        className='w-full max-w-md'
         shadow='none'
       >
         <CardHeader className='flex flex-col gap-2'>

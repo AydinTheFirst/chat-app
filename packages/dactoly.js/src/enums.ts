@@ -10,6 +10,11 @@ export enum FriendRequestStatus {
   REJECTED = 'REJECTED',
 }
 
+export enum MessageType {
+  DEFAULT = 'DEFAULT',
+  SYSTEM = 'SYSTEM',
+}
+
 export enum UserRole {
   ADMIN = 'ADMIN',
   USER = 'USER',

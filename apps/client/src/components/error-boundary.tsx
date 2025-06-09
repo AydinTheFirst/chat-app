@@ -88,7 +88,7 @@ function Devtools() {
           <ModalHeader className='flex flex-col gap-1'>
             {errorMessage}
           </ModalHeader>
-          <ModalBody className='bg-content2 text-red-500'>
+          <ModalBody className='text-red-500'>
             <pre className='break-words whitespace-pre-wrap'>
               <code>{errorStack}</code>
             </pre>

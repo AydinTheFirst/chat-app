@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import crypto from 'crypto';
 
 import { PrismaService } from '~/database';
 
@@ -21,5 +22,17 @@ export class TokenService {
     });
 
     this.logger.debug(`Cleared ${deletedTokens.count} expired tokens at ${now.toISOString()}`);
+  }
+
+  async createToken(userId: string) {
+    const token = await this.prisma.token.create({
+      data: {
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 1 week
+        token: crypto.randomBytes(32).toString('hex'),
+        userId,
+      },
+    });
+
+    return token;
   }
 }

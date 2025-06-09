@@ -18,12 +18,12 @@ import { useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
 import ConfirmModal from "~/components/confirm-modal";
+import SidebarToggler from "~/components/sidebar-toggler";
 import UserCard from "~/components/user-card";
 import { useAuth } from "~/hooks/use-auth";
 import { dactoly } from "~/lib/dactoly";
 import { handleError, http } from "~/lib/http";
 
-import SidebarToggler from "../sidebar-toggler";
 import AddFriend from "./add-friend";
 
 export const clientLoader = async () => {
@@ -130,7 +130,10 @@ function FriendCard({ friend }: { friend: Friendship }) {
 
   return (
     <>
-      <Card isHoverable>
+      <Card
+        className='bg-transparent'
+        isHoverable
+      >
         <CardBody className='grid grid-cols-2'>
           <div>
             <UserCard user={plainToInstance(User, user)} />

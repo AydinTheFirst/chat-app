@@ -3,6 +3,7 @@ import argon from 'argon2';
 
 import { PrismaService } from '~/database';
 
+import { TokenService } from '../token/token.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto, RegisterDto } from './auth.dto';
 
@@ -11,6 +12,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private usersService: UsersService,
+    private tokenService: TokenService,
   ) {}
 
   async login(body: LoginDto) {
@@ -25,12 +27,7 @@ export class AuthService {
     const isValid = await argon.verify(user.password, body.password);
     if (!isValid) throw new BadRequestException('Invalid password or username');
 
-    const token = await this.prisma.token.create({
-      data: {
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 1 week
-        userId: user.id,
-      },
-    });
+    const token = await this.tokenService.createToken(user.id);
 
     return {
       ...user,

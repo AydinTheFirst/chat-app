@@ -6,8 +6,12 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { User } from '@prisma/client';
+import { Channel, User } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
+
+interface ChannelWithUsers extends Channel {
+  users: User[];
+}
 
 @WebSocketGateway({ cors: true })
 export class ChannelsGateway {
@@ -15,6 +19,43 @@ export class ChannelsGateway {
 
   @WebSocketServer()
   server: Server;
+
+  broadcastChannelEvent(event: string, channel: ChannelWithUsers) {
+    const sockets = this.server.sockets.sockets;
+
+    const userIds = new Set(channel.users.map((u) => u.id));
+
+    for (const socket of sockets.values()) {
+      const user = socket.data.user as User;
+      if (!user) continue;
+      if (userIds.has(user.id)) {
+        socket.emit(event, channel);
+        this.logger.log(
+          `Emitted ${event} to user ${user.username} (${user.id}) in channel ${channel.id}`,
+        );
+      }
+    }
+  }
+
+  emitChannelCreate(channel: ChannelWithUsers) {
+    return this.broadcastChannelEvent('channelCreate', channel);
+  }
+
+  emitChannelDelete(channel: ChannelWithUsers) {
+    return this.broadcastChannelEvent('channelDelete', channel);
+  }
+
+  emitChannelJoin(channel: ChannelWithUsers) {
+    return this.broadcastChannelEvent('channelJoin', channel);
+  }
+
+  emitChannelLeave(channel: ChannelWithUsers) {
+    return this.broadcastChannelEvent('channelLeave', channel);
+  }
+
+  emitChannelUpdate(channel: ChannelWithUsers) {
+    return this.broadcastChannelEvent('channelUpdate', channel);
+  }
 
   @SubscribeMessage('join')
   handleJoinChannel(@ConnectedSocket() client: Socket, @MessageBody() channelId: string) {

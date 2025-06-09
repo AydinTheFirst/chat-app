@@ -8,19 +8,32 @@ import * as crypto from 'crypto';
 
 import { QueryService } from '~/common/services/query.service';
 import { Channel, Prisma, PrismaService } from '~/database';
+import { ChannelsGateway } from '~/gateways/channels.gateway';
 
 import { FriendsService } from '../friendships/friends.service';
+import { MessagesService } from '../messages/messages.service';
 import { CreateChannelDto, QueryChannelDto, UpdateChannelDto } from './channels.dto';
 
 @Injectable()
 export class ChannelsService extends QueryService<Channel> {
+  userSelect: Prisma.UserSelect = {
+    id: true,
+    profile: true,
+    username: true,
+  };
+
   channelInclude: Prisma.ChannelInclude = {
-    users: { select: { id: true, profile: true, username: true } },
+    lastMessage: true,
+    messages: { include: { author: { select: this.userSelect } } },
+    owner: { select: this.userSelect },
+    users: { select: this.userSelect },
   };
 
   constructor(
     private prisma: PrismaService,
     private friendsService: FriendsService,
+    private messagesService: MessagesService,
+    private channelsGateway: ChannelsGateway,
   ) {
     super(prisma.channel);
   }
@@ -36,7 +49,10 @@ export class ChannelsService extends QueryService<Channel> {
           connect: { id: userId },
         },
       },
+      include: this.channelInclude,
     });
+
+    this.channelsGateway.emitChannelCreate(channel);
 
     return channel;
   }
@@ -75,16 +91,17 @@ export class ChannelsService extends QueryService<Channel> {
           connect: [{ id: userId }, { id: targetUserId }],
         },
       },
+      include: this.channelInclude,
     });
+
+    this.channelsGateway.emitChannelCreate(dmChannel);
 
     return dmChannel;
   }
 
   async findAll(_query: QueryChannelDto, userId: string) {
     const channels = await this.prisma.channel.findMany({
-      include: {
-        users: { select: { id: true, profile: true, username: true } },
-      },
+      include: this.channelInclude,
       where: {
         users: {
           some: { id: userId },
@@ -149,8 +166,41 @@ export class ChannelsService extends QueryService<Channel> {
     return channel;
   }
 
+  async joinChannel(id: string, userId: string) {
+    const channel = await this.prisma.channel.findFirst({
+      include: this.channelInclude,
+      where: {
+        id,
+      },
+    });
+
+    if (!channel) {
+      throw new NotFoundException('Channel not found.');
+    }
+
+    const updatedChannel = await this.prisma.channel.update({
+      data: {
+        users: {
+          connect: { id: userId },
+        },
+      },
+      where: { id },
+    });
+
+    await this.messagesService.sendSystemMessage(
+      updatedChannel.id,
+      `@${userId} joined the channel.`,
+    );
+
+    return updatedChannel;
+  }
+
   async kickUserFromChannel(channelId: string, userId: string, targetUserId: string) {
     const channel = await this.findOne(channelId, userId);
+
+    if (userId === targetUserId) {
+      throw new BadRequestException('You cannot kick yourself from the channel');
+    }
 
     if (channel.ownerId !== userId) {
       throw new ForbiddenException('You are not the owner of this channel');
@@ -188,6 +238,7 @@ export class ChannelsService extends QueryService<Channel> {
     if (channel.ownerId === userId) {
       throw new ForbiddenException('You cannot leave a channel you own');
     }
+
     const updatedChannel = await this.prisma.channel.update({
       data: {
         users: {
@@ -196,6 +247,9 @@ export class ChannelsService extends QueryService<Channel> {
       },
       where: { id },
     });
+
+    await this.messagesService.sendSystemMessage(updatedChannel.id, `@${userId}> left the channel`);
+
     return updatedChannel;
   }
 
@@ -211,8 +265,11 @@ export class ChannelsService extends QueryService<Channel> {
     }
 
     const deletedChannel = await this.prisma.channel.delete({
+      include: this.channelInclude,
       where: { id },
     });
+
+    this.channelsGateway.emitChannelDelete(deletedChannel);
 
     return deletedChannel;
   }
@@ -226,8 +283,11 @@ export class ChannelsService extends QueryService<Channel> {
 
     const updatedChannel = await this.prisma.channel.update({
       data: updateChannelDto,
+      include: this.channelInclude,
       where: { id },
     });
+
+    this.channelsGateway.emitChannelUpdate(updatedChannel);
 
     return updatedChannel;
   }

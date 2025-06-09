@@ -45,7 +45,7 @@ model Profile {
   websiteUrl  String?
 
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,7 +58,7 @@ model Token {
   token String @unique @default(cuid())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -68,17 +68,19 @@ model Token {
 }
 
 model Message {
-  id      String @id @default(uuid())
+  id      String      @id @default(uuid())
   content String
+  type    MessageType @default(DEFAULT)
 
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id])
 
   channelId          String
   channel            Channel  @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
   channelLastMessage Channel? @relation("LastMessage")
 
   editedAt  DateTime?
+  deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -114,10 +116,10 @@ model Friendship {
   status FriendRequestStatus @default(PENDING)
 
   fromId String
-  from   User   @relation("FriendRequestsSent", fields: [fromId], references: [id])
+  from   User   @relation("FriendRequestsSent", fields: [fromId], references: [id], onDelete: Cascade)
 
   toId String
-  to   User   @relation("FriendRequestsReceived", fields: [toId], references: [id])
+  to   User   @relation("FriendRequestsReceived", fields: [toId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -156,4 +158,9 @@ enum ChannelType {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum MessageType {
+  DEFAULT
+  SYSTEM
 }

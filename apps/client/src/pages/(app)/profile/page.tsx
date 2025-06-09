@@ -16,12 +16,12 @@ import CdnAvatar from "~/components/cdn-avatar";
 import CdnImage from "~/components/cdn-image";
 import ConfirmModal from "~/components/confirm-modal";
 import PasswordInput from "~/components/password-input";
+import SidebarToggler from "~/components/sidebar-toggler";
 import { StyledButton } from "~/components/styled-button";
 import { useAuth } from "~/hooks/use-auth";
 import { handleError, http } from "~/lib/http";
 import { getFormData } from "~/lib/utils";
 
-import SidebarToggler from "../sidebar-toggler";
 import UpdateAvatar from "./update-avatar";
 import UpdateBanner from "./update-banner";
 
@@ -59,8 +59,8 @@ export default function Profile() {
           <h2 className='text-lg font-semibold'>Profile</h2>
         </NavbarContent>
       </Navbar>
-      <div className='container flex-1 overflow-y-auto'>
-        <div>
+      <div className='flex-1 overflow-y-auto'>
+        <div className='container'>
           <Card className='mx-auto my-4 w-full max-w-2xl'>
             <CardHeader>
               <h2 className='text-lg font-semibold'>Edit Profile</h2>

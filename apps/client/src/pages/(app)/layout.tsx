@@ -1,5 +1,11 @@
 import { cn } from "@heroui/react";
-import { Channel, plainToInstance } from "dactoly.js";
+import {
+  Channel,
+  Friendship,
+  Message,
+  plainToInstance,
+  User
+} from "dactoly.js";
 import { useEffect } from "react";
 import { Outlet, useLoaderData, useLocation } from "react-router";
 
@@ -9,6 +15,9 @@ import { useSidebar } from "~/hooks/use-sidebar";
 import { useDevice } from "~/hooks/use-viewport";
 import { dactoly } from "~/lib/dactoly";
 import { useChannelStore } from "~/store/channel-store";
+import { useFriendshipStore } from "~/store/friendship-store";
+import { useMessageStore } from "~/store/message-store";
+import { useUserStore } from "~/store/user-store";
 
 import Sidebar from "./sidebar";
 
@@ -16,16 +25,33 @@ const SIDEBAR_WIDTH = 320; // px
 
 export const clientLoader = async () => {
   const channels = await dactoly.channels.getAll();
-  return { channels };
+  const friendships = await dactoly.friendships.getAll();
+  return { channels, friendships };
 };
 
 export default function Layout() {
-  const { channels } = useLoaderData<typeof clientLoader>();
+  const { channels, friendships } = useLoaderData<typeof clientLoader>();
   const setChannels = useChannelStore((s) => s.setChannels);
+  const setMessages = useMessageStore((s) => s.setMessages);
+  const setUsers = useUserStore((s) => s.setUsers);
+  const setFriendships = useFriendshipStore((s) => s.setFriendships);
 
   useEffect(() => {
     setChannels(plainToInstance(Channel, channels));
-  }, [channels, setChannels]);
+    channels.forEach((channel) => {
+      if (channel.messages && channel.messages.length > 0) {
+        setMessages(channel.id, plainToInstance(Message, channel.messages));
+      }
+
+      if (channel.users && channel.users.length > 0) {
+        setUsers(channel.users.map((u) => plainToInstance(User, u)));
+      }
+    });
+  }, [channels, setChannels, setMessages, setUsers]);
+
+  useEffect(() => {
+    setFriendships(friendships.map((f) => plainToInstance(Friendship, f)));
+  }, [friendships, setFriendships]);
 
   return (
     <AuthProvider>
@@ -60,7 +86,7 @@ function SidebarLayout({ children }: React.PropsWithChildren) {
         <Sidebar />
       </div>
       <div
-        className={cn("bg-content2 transition-width")}
+        className={cn("transition-width")}
         style={{
           width: `calc(100vw - ${isOpen ? SIDEBAR_WIDTH : 0}px)`
         }}

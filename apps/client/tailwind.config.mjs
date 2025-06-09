@@ -7,6 +7,8 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
     "../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
   ],
+  darkMode: "class",
+  plugins: [heroui()],
   theme: {
     extend: {
       container: {
@@ -14,7 +16,5 @@ export default {
         padding: "1rem"
       }
     }
-  },
-  darkMode: "class",
-  plugins: [heroui({})]
+  }
 };
