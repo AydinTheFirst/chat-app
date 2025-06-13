@@ -1,6 +1,11 @@
 import { Channel, plainToInstance } from "dactoly.js";
 import { useEffect } from "react";
-import { useLoaderData, useNavigate } from "react-router";
+import {
+  isRouteErrorResponse,
+  useLoaderData,
+  useNavigate,
+  useRouteError
+} from "react-router";
 
 import { http } from "~/lib/http";
 import { useChannelStore } from "~/store/channel-store";
@@ -22,6 +27,25 @@ export const clientLoader = async ({ request }: Route.ClientLoaderArgs) => {
   }
 
   return { channel };
+};
+
+export const ErrorBoundary = () => {
+  const error = useRouteError();
+  let message = "An unexpected error occurred.";
+
+  if (isRouteErrorResponse(error)) {
+    message =
+      error.statusText || "An error occurred while processing your request.";
+  }
+
+  return (
+    <div className='flex h-screen items-center justify-center'>
+      <div className='text-center'>
+        <h1 className='text-2xl font-bold'>Error</h1>
+        <p className='mt-2'>{message}</p>
+      </div>
+    </div>
+  );
 };
 
 export default function Page() {

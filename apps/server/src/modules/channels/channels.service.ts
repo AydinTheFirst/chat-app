@@ -191,8 +191,14 @@ export class ChannelsService extends QueryService<Channel> {
           disconnect: { id: targetUserId },
         },
       },
+      include: this.channelInclude,
       where: { id: channelId },
     });
+
+    await this.messagesService.sendSystemMessage(
+      updatedChannel.id,
+      `@${targetUserId} was kicked from the channel by @${userId}.`,
+    );
 
     return updatedChannel;
   }

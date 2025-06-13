@@ -52,12 +52,13 @@ export default function ChatBox({ channelId }: ChatBoxProps) {
                 )}
               </span>
             </div>
-            <div className='flex'>
+            <div className='flex justify-between gap-3'>
               <p className='w-full truncate text-xs font-normal text-gray-700 dark:text-gray-300'>
                 {lastMessage && lastMessage.content}
               </p>
               {unreadCount > 0 && (
                 <Chip
+                  className='flex-shrink-0'
                   color='primary'
                   size='sm'
                 >

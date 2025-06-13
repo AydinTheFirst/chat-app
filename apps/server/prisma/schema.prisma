@@ -122,7 +122,7 @@ model ChannelReadStatus {
   lastReadMessageId String?
 
   user            User     @relation(fields: [userId], references: [id])
-  channel         Channel  @relation(fields: [channelId], references: [id])
+  channel         Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   lastReadMessage Message? @relation(fields: [lastReadMessageId], references: [id])
 
   updatedAt DateTime @updatedAt
