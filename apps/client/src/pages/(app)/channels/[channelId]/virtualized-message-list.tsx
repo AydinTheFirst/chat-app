@@ -24,7 +24,7 @@ export default function MessageList({ messages }: MessageListProps) {
   }
 
   return (
-    <div className='flex flex-col gap-2'>
+    <div className='grid gap-1'>
       {messages.map((m) => (
         <MessageBubble
           key={m.id}

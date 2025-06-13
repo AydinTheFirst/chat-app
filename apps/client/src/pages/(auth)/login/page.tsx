@@ -1,16 +1,13 @@
 import { Card, CardBody, CardHeader, Input, Link } from "@heroui/react";
-import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { Heading } from "~/components/heading";
 import OrDivider from "~/components/or";
 import PasswordInput from "~/components/password-input";
 import { StyledButton } from "~/components/styled-button";
-import { handleError, http, saveToken } from "~/lib/http";
+import { handleError, http } from "~/lib/http";
 
 export default function Login() {
-  const navigate = useNavigate();
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -19,10 +16,9 @@ export default function Login() {
 
     try {
       const response = await http.post("/auth/login", data);
-      saveToken(response.data.token);
+      localStorage.setItem("token", response.data.token);
       toast.success("Login successful!");
-
-      navigate("/");
+      location.replace("/");
     } catch (error) {
       handleError(error);
     }

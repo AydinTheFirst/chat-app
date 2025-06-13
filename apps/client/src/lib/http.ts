@@ -48,9 +48,4 @@ const uploadFiles = async (files: File[]) => {
   return data;
 };
 
-const saveToken = (token: string) => {
-  localStorage.setItem("token", token);
-  http.defaults.headers.common.Authorization = `Bearer ${token}`;
-};
-
-export { fetcher, handleError, http, saveToken, uploadFiles };
+export { fetcher, handleError, http, uploadFiles };

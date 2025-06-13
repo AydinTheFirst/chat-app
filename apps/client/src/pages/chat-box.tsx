@@ -1,11 +1,11 @@
-import { Card, CardBody, cn, Link } from "@heroui/react";
+import { Card, CardBody, Chip, cn, Link } from "@heroui/react";
 import { useLocation } from "react-router";
 
 import CdnAvatar from "~/components/cdn-avatar";
 import { useAuth } from "~/hooks/use-auth";
 import { getChannelDisplayInfo } from "~/lib/utils";
 import { useChannelStore } from "~/store/channel-store";
-import { useLastMessage } from "~/store/hooks";
+import { useLastMessage, useUnreadCount } from "~/store/hooks";
 
 import MessageTime from "../components/message-time";
 
@@ -17,6 +17,7 @@ export default function ChatBox({ channelId }: ChatBoxProps) {
   const channel = useChannelStore((s) => s.channels[channelId]);
   const { user: currentUser } = useAuth();
   const lastMessage = useLastMessage(channel.id);
+  const unreadCount = useUnreadCount(channel.id);
 
   const { pathname } = useLocation();
 
@@ -45,15 +46,25 @@ export default function ChatBox({ channelId }: ChatBoxProps) {
               <span className='text-sm font-semibold text-gray-900 dark:text-white'>
                 {channelInfo.displayName}
               </span>
-              <span className='text-xs font-normal text-gray-500 dark:text-gray-400'>
+              <span className='truncate text-xs font-normal text-gray-500 dark:text-gray-400'>
                 {lastMessage && (
                   <MessageTime createdAt={lastMessage.createdAt} />
                 )}
               </span>
             </div>
-            <p className='w-full truncate text-xs font-normal text-gray-700 dark:text-gray-300'>
-              {lastMessage && lastMessage.content}
-            </p>
+            <div className='flex'>
+              <p className='w-full truncate text-xs font-normal text-gray-700 dark:text-gray-300'>
+                {lastMessage && lastMessage.content}
+              </p>
+              {unreadCount > 0 && (
+                <Chip
+                  color='primary'
+                  size='sm'
+                >
+                  {unreadCount}
+                </Chip>
+              )}
+            </div>
           </div>
         </div>
       </CardBody>

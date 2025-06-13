@@ -1,14 +1,17 @@
 import { Button, Navbar, NavbarContent } from "@heroui/react";
 import { Channel, plainToInstance } from "dactoly.js";
 import { LucideEllipsisVertical } from "lucide-react";
+import { useEffect } from "react";
 import { useParams } from "react-router";
 
 import SidebarToggler from "~/components/sidebar-toggler";
 import TypingIndicator from "~/components/typing-indicator";
 import { useAuth } from "~/hooks/use-auth";
 import { getChannelDisplayInfo } from "~/lib/utils";
+import { useActiveChannelStore } from "~/store/active-channel-store";
 import { useChannelStore } from "~/store/channel-store";
 import { useMessages } from "~/store/hooks";
+import { useReadStatusStore } from "~/store/read-status-store";
 
 import ChannelInfoModal from "./channel-info";
 import CreateInvite from "./create-invite";
@@ -18,10 +21,26 @@ import VirtualizedMessageList from "./virtualized-message-list";
 export default function Page() {
   const { channelId } = useParams<{ channelId: string }>();
   const channel = useChannelStore((s) => s.channels[channelId!]);
+  const updateReadStatus = useReadStatusStore((s) => s.updateStatus);
   const channelMessages = useMessages(channelId!);
+  const setActiveChannelId = useActiveChannelStore((s) => s.setActiveChannelId);
   const { user } = useAuth();
 
   const channelInfo = getChannelDisplayInfo(channel, user.id);
+
+  useEffect(() => {
+    if (!channel) return;
+    if (!channel.lastMessageId) return;
+    console.log("LastMessageId", channel.lastMessageId);
+    updateReadStatus(channel.id, channel.lastMessageId);
+  }, [channel, updateReadStatus]);
+
+  useEffect(() => {
+    setActiveChannelId(channelId!);
+    return () => {
+      setActiveChannelId(null);
+    };
+  }, [channelId, setActiveChannelId]);
 
   return (
     <div className='flex h-screen flex-col'>

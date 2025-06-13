@@ -25,10 +25,11 @@ model User {
 
   messages               Message[]
   tokens                 Token[]
-  channels               Channel[]    @relation("ChannelUsers")
-  ownedChannels          Channel[]    @relation("ChannelOwner")
-  friendRequestsSent     Friendship[] @relation("FriendRequestsSent")
-  friendRequestsReceived Friendship[] @relation("FriendRequestsReceived")
+  channels               Channel[]           @relation("ChannelUsers")
+  ownedChannels          Channel[]           @relation("ChannelOwner")
+  friendRequestsSent     Friendship[]        @relation("FriendRequestsSent")
+  friendRequestsReceived Friendship[]        @relation("FriendRequestsReceived")
+  channelReadStatus      ChannelReadStatus[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -76,8 +77,9 @@ model Message {
   author   User?   @relation(fields: [authorId], references: [id])
 
   channelId          String
-  channel            Channel  @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
-  channelLastMessage Channel? @relation("LastMessage")
+  channel            Channel             @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
+  channelLastMessage Channel?            @relation("LastMessage")
+  channelReadStatus  ChannelReadStatus[]
 
   editedAt  DateTime?
   deletedAt DateTime?
@@ -105,10 +107,29 @@ model Channel {
   ownerId String?
   owner   User?   @relation("ChannelOwner", fields: [ownerId], references: [id])
 
+  channelReadStatus ChannelReadStatus[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("channels")
+}
+
+model ChannelReadStatus {
+  id                String  @id @default(uuid())
+  userId            String
+  channelId         String
+  lastReadMessageId String?
+
+  user            User     @relation(fields: [userId], references: [id])
+  channel         Channel  @relation(fields: [channelId], references: [id])
+  lastReadMessage Message? @relation(fields: [lastReadMessageId], references: [id])
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, channelId])
+  @@map("channel_read_status")
 }
 
 model Friendship {

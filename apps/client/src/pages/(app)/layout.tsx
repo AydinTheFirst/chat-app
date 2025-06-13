@@ -17,6 +17,7 @@ import { dactoly } from "~/lib/dactoly";
 import { useChannelStore } from "~/store/channel-store";
 import { useFriendshipStore } from "~/store/friendship-store";
 import { useMessageStore } from "~/store/message-store";
+import { useReadStatusStore } from "~/store/read-status-store";
 import { useUserStore } from "~/store/user-store";
 
 import Sidebar from "./sidebar";
@@ -35,6 +36,7 @@ export default function Layout() {
   const setMessages = useMessageStore((s) => s.setMessages);
   const setUsers = useUserStore((s) => s.setUsers);
   const setFriendships = useFriendshipStore((s) => s.setFriendships);
+  const fetchReadStatus = useReadStatusStore((state) => state.fetchStatus);
 
   useEffect(() => {
     setChannels(plainToInstance(Channel, channels));
@@ -46,8 +48,10 @@ export default function Layout() {
       if (channel.users && channel.users.length > 0) {
         setUsers(channel.users.map((u) => plainToInstance(User, u)));
       }
+
+      fetchReadStatus(channel.id);
     });
-  }, [channels, setChannels, setMessages, setUsers]);
+  }, [channels, setChannels, setMessages, setUsers, fetchReadStatus]);
 
   useEffect(() => {
     setFriendships(friendships.map((f) => plainToInstance(Friendship, f)));

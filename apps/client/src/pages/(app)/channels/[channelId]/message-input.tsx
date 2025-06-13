@@ -66,7 +66,6 @@ export default function MessageInput() {
       <Card
         className='bg-content1'
         radius='none'
-        shadow='none'
       >
         <CardBody>
           <form

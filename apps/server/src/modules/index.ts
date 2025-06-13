@@ -1,4 +1,5 @@
 import { AuthModule } from './auth';
+import { ChannelReadStatusModule } from './channel-read-status/channel-read-status.module';
 import { ChannelsModule } from './channels';
 import { FilesModule } from './files/files.module';
 import { FriendsModule } from './friendships/friends.module';
@@ -10,6 +11,7 @@ import { UsersModule } from './users';
 
 const Modules = {
   AuthModule,
+  ChannelReadStatusModule,
   ChannelsModule,
   FilesModule,
   FriendsModule,

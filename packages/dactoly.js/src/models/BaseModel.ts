@@ -1,14 +1,11 @@
-import { Expose, instanceToPlain, plainToInstance, Type } from 'class-transformer';
+import { instanceToPlain, plainToInstance, Type } from 'class-transformer';
 
 export abstract class BaseModel {
-  @Expose()
   @Type(() => Date)
   createdAt: Date;
 
-  @Expose()
   id: string;
 
-  @Expose()
   @Type(() => Date)
   updatedAt: Date;
 

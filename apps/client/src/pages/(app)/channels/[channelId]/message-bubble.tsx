@@ -82,9 +82,9 @@ export default function MessageBubble({
         )}
 
         <MessageActions message={message}>
-          <p className='max-w-7xl text-sm font-normal text-gray-900 dark:text-white'>
+          <span className='max-w-7xl text-sm font-normal text-gray-900 dark:text-white'>
             <MessageContent content={message.content} />
-          </p>
+          </span>
         </MessageActions>
 
         {message.editedAt && (
