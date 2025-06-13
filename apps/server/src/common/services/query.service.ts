@@ -1,12 +1,50 @@
-import { PrismaService } from '~/database';
-
 export class QueryService<T> {
   constructor(private prismaModel: any) {}
 
-  async queryAll(query: any, searchableFields: (keyof T)[] = [], customWhere: any = {}) {
-    const baseQuery = PrismaService.buildPrismaQuery<T>(query, searchableFields);
+  buildPrismaQuery(
+    query: {
+      fields?: string;
+      include?: Record<string, boolean | object>; // burası include için
+      limit?: number;
+      offset?: number;
+      order?: 'asc' | 'desc';
+      search?: string;
+      sort?: string;
+    },
+    searchableFields: (keyof T)[] = [],
+  ) {
+    const { fields, include, limit, offset, order, search, sort } = query;
 
-    // extra filtreleri where'e ekle
+    const prismaQuery: any = {
+      orderBy: { [sort || 'createdAt']: order || 'desc' },
+      skip: Number(offset) || undefined,
+      take: Number(limit) || undefined,
+    };
+
+    if (search && searchableFields.length > 0) {
+      prismaQuery.where = {
+        OR: searchableFields.map((field) => ({
+          [field]: { contains: search, mode: 'insensitive' },
+        })),
+      };
+    }
+
+    if (fields) {
+      prismaQuery.select = fields
+        .split(',')
+        .reduce((acc, key) => ({ ...acc, [key.trim()]: true }), {});
+    }
+
+    if (include) {
+      prismaQuery.include = include;
+    }
+
+    return prismaQuery;
+  }
+
+  async queryAll(query: any, searchableFields: (keyof T)[] = [], customWhere: any = {}) {
+    const baseQuery = this.buildPrismaQuery(query, searchableFields);
+
     baseQuery.where = {
       ...(baseQuery.where || {}),
       ...(customWhere || {}),

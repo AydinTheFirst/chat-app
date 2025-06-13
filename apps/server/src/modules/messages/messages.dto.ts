@@ -11,7 +11,10 @@ export class CreateMessageDto implements Partial<Prisma.MessageCreateInput> {
   content: string;
 }
 
-export class QueryMessageDto extends BaseQueryDto {}
+export class QueryMessageDto extends BaseQueryDto {
+  @IsString()
+  channelId: string;
+}
 
 export class UpdateMessageDto implements Partial<Prisma.MessageUpdateInput> {
   @IsOptional()

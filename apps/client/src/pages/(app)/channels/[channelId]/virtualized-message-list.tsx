@@ -1,15 +1,25 @@
-import type { Message } from "dactoly.js";
+import { useEffect, useRef } from "react";
 
-import React, { useEffect, useRef } from "react";
+import { useMessages } from "~/store/hooks";
+import { useReadStatusStore } from "~/store/read-status-store";
 
 import MessageBubble from "./message-bubble";
 
 interface MessageListProps {
-  messages: Message[];
+  channelId: string;
 }
 
-export default function MessageList({ messages }: MessageListProps) {
+export default function MessageList({ channelId }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messages = useMessages(channelId);
+
+  const updateStatus = useReadStatusStore((s) => s.updateStatus);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+    updateStatus(lastMessage.channelId, lastMessage.id);
+  }, [messages, updateStatus]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -59,22 +59,29 @@ export class MessagesService extends QueryService<Message> {
     return message;
   }
 
-  findAll(query: QueryMessageDto, userId: string) {
-    const where: Prisma.MessageWhereInput = {
-      authorId: userId,
-    };
+  findAll(query: QueryMessageDto) {
+    const { channelId, ...rest } = query;
 
-    const messages = this.queryAll(query, ['content'], where);
+    const where: Prisma.MessageWhereInput = {};
 
-    if (!messages) {
-      throw new NotFoundException('No messages found for this user');
+    if (channelId) {
+      where.channelId = channelId;
     }
+
+    const messages = this.queryAll(
+      {
+        ...rest,
+        include: this.messageInclude,
+      },
+      ['content'],
+      where,
+    );
 
     return messages;
   }
 
   async findOne(id: string, userId: string) {
-    const message = await this.prisma.message.findUnique({
+    const message = await this.prisma.message.findFirst({
       where: { authorId: userId, id },
     });
 

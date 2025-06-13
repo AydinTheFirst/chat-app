@@ -41,11 +41,6 @@ export class ChannelsController {
     return this.channelsService.findAllDMChannels(userId);
   }
 
-  @Get(':id/messages')
-  findMessages(@Param('id') id: string, @GetUser('id') userId: string) {
-    return this.channelsService.findMessages(id, userId);
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.channelsService.findOne(id, userId);

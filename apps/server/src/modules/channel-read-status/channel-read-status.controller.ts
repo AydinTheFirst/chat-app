@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 
+import { GetUser } from '~/common/decorators';
 import { AuthGuard } from '~/common/guards';
 
 import { UpdateReadStatusDto } from './channel-read-status.dto';
@@ -11,14 +12,17 @@ export class ChannelReadStatusController {
   constructor(private readonly readStatusService: ChannelReadStatusService) {}
 
   @Get(':channelId')
-  async getStatus(@Param('channelId') channelId: string, @Req() req) {
-    const userId = req.user.id;
+  getStatus(@Param('channelId') channelId: string, @GetUser('id') userId: string) {
     return this.readStatusService.getStatus(userId, channelId);
   }
 
+  @Get(':channelId/unread-count')
+  getUnreadCount(@Param('channelId') channelId: string, @GetUser('id') userId: string) {
+    return this.readStatusService.getUnreadCount(userId, channelId);
+  }
+
   @Post()
-  async updateStatus(@Body() dto: UpdateReadStatusDto, @Req() req) {
-    const userId = req.user.id;
+  updateStatus(@Body() dto: UpdateReadStatusDto, @GetUser('id') userId: string) {
     return this.readStatusService.updateStatus(userId, dto.channelId, dto.lastReadMessageId);
   }
 }

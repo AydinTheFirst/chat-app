@@ -30,14 +30,6 @@ export const DactolyProvider = ({
       initSocketEvents();
     });
 
-    socket.onAny((event: string, ...args: unknown[]) => {
-      console.log(`WebSocket coming event: ${event}`, ...args);
-    });
-
-    socket.onAnyOutgoing((event: string, ...args: unknown[]) => {
-      console.log(`WebSocket outgoing event: ${event}`, ...args);
-    });
-
     socket.on("authSuccess", () => {
       socket.emit("updateStatus", "online");
     });

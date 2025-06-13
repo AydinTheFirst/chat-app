@@ -1,5 +1,5 @@
 import { DactolyClient } from '~/dactoly';
-import { CreateMessageDto, UpdateMessageDto } from '~/dtos';
+import { CreateMessageDto, PaginatedResponseDto, QueryMessagesDto, UpdateMessageDto } from '~/dtos';
 import { Message } from '~/models';
 
 import { BaseController } from './BaseController';
@@ -17,8 +17,8 @@ export class MessagesController extends BaseController {
     await this.client.http.delete(`/messages/${messageId}`);
   }
 
-  getAll(): Promise<Message[]> {
-    return this.transformArray(this.client.http.get('/messages'), Message);
+  getAll(query: QueryMessagesDto): Promise<PaginatedResponseDto<Message>> {
+    return this.transformPaginated(this.client.http.get('/messages', { params: query }), Message);
   }
 
   getById(messageId: string): Promise<Message> {

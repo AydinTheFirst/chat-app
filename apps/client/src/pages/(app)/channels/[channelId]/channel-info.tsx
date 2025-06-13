@@ -10,10 +10,12 @@ import {
   useDisclosure
 } from "@heroui/react";
 import { LucideInfo, LucideUserX2 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate, useRevalidator } from "react-router";
 import { toast } from "sonner";
 
 import ConfirmModal from "~/components/confirm-modal";
+import EditableText from "~/components/editable-input";
 import UserCard from "~/components/user-card";
 import { useAuth } from "~/hooks/use-auth";
 import { handleError, http } from "~/lib/http";
@@ -40,6 +42,33 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
 
   const channelInfo = getChannelDisplayInfo(channel, currentUser.id);
 
+  // Controlled inputs state
+  const [name, setName] = useState(channelInfo.displayName);
+  const [description, setDescription] = useState(channelInfo.description || "");
+
+  const isOwner = channel.ownerId === currentUser?.id;
+  const isDM = channel.type === "DM";
+
+  const saveChanges = async ({
+    description,
+    name
+  }: {
+    description?: string;
+    name?: string;
+  }) => {
+    const data: Record<string, string> = {};
+    if (description) data.description = description;
+    if (name) data.name = name;
+
+    try {
+      await http.patch(`/channels/${channel.id}`, data);
+      toast.success("Channel info updated!");
+      revalidator.revalidate();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   const handleLeave = async () => {
     try {
       await http.delete(`/channels/${channel.id}/leave`);
@@ -64,9 +93,6 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
     }
   };
 
-  const isOwner = channel.ownerId === currentUser?.id;
-  const isDM = channel.type === "DM";
-
   if (!channelInfo) {
     return <p>Channel not found or you do not have permission to view it.</p>;
   }
@@ -87,8 +113,32 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
       >
         <ModalContent>
           <ModalHeader className='flex flex-col gap-1'>
-            <h2>{channelInfo.displayName}</h2>
-            <p className='text-sm text-gray-500'>{channelInfo.description}</p>
+            <EditableText
+              className='cursor-pointer text-xl font-bold'
+              disabled={!isOwner}
+              inputClassName='border p-1 rounded w-full text-xl font-bold'
+              onSave={async (newName) => {
+                setName(newName);
+                await saveChanges({ name: newName });
+              }}
+              placeholder='Channel name'
+              value={name}
+            />
+
+            <EditableText
+              className='cursor-pointer text-sm text-gray-500'
+              disabled={!isOwner}
+              inputClassName='border p-1 rounded w-full text-sm text-gray-500 resize-none'
+              onSave={async (newDesc) => {
+                setDescription(newDesc);
+                await saveChanges({ description: newDesc });
+              }}
+              placeholder='No description'
+              rows={3}
+              textarea
+              value={description}
+            />
+
             {!isDM && (
               <p className='text-sm text-gray-500'>
                 Owner: {channel.owner?.username}
@@ -156,6 +206,7 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
     </>
   );
 }
+
 function ChannelUser({ channel, user }: ChannelUserProps) {
   const revalidator = useRevalidator();
   const kickModal = useDisclosure();

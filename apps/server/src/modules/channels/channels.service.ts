@@ -24,7 +24,6 @@ export class ChannelsService extends QueryService<Channel> {
 
   channelInclude: Prisma.ChannelInclude = {
     lastMessage: true,
-    messages: { include: { author: { select: this.userSelect } } },
     owner: { select: this.userSelect },
     users: { select: this.userSelect },
   };
@@ -124,30 +123,6 @@ export class ChannelsService extends QueryService<Channel> {
     });
 
     return channels;
-  }
-
-  async findMessages(id: string, userId: string) {
-    const channel = await this.prisma.channel.findFirst({
-      include: {
-        messages: {
-          include: {
-            author: {
-              select: { id: true, profile: true, username: true },
-            },
-          },
-        },
-      },
-      where: {
-        id,
-        users: { some: { id: userId } },
-      },
-    });
-
-    if (!channel) {
-      throw new NotFoundException('Channel not found or you are not a member of this channel');
-    }
-
-    return channel.messages;
   }
 
   async findOne(id: string, userId: string) {

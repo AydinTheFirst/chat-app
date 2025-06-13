@@ -6,6 +6,7 @@ import { dactoly } from "~/lib/dactoly";
 
 interface ReadStatusStore {
   fetchStatus: (channelId: string) => Promise<ReadStatus | undefined>;
+  fetchUnreadCount: (channelId: string) => Promise<number>;
   readStatus: Record<string, null | ReadStatus>;
   updateStatus: (channelId: string, lastReadMessageId: string) => Promise<void>;
 }
@@ -27,6 +28,20 @@ export const useReadStatusStore = create<ReadStatusStore>((set) => ({
     }
   },
 
+  fetchUnreadCount: async (channelId) => {
+    try {
+      const count = await dactoly.readStatus.getUnreadCount(channelId);
+      return count;
+    } catch (error) {
+      console.error(
+        "Failed to fetch unread count for channel:",
+        channelId,
+        error
+      );
+      return 0;
+    }
+  },
+
   readStatus: {},
 
   updateStatus: async (channelId, lastReadMessageId) => {
@@ -35,6 +50,7 @@ export const useReadStatusStore = create<ReadStatusStore>((set) => ({
         channelId,
         lastReadMessageId
       });
+
       set((state) => ({
         readStatus: {
           ...state.readStatus,

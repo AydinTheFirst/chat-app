@@ -27,8 +27,8 @@ export class MessagesController {
   }
 
   @Get()
-  findAll(@Query() query: QueryMessageDto, @GetUser('id') userId: string) {
-    return this.messagesService.findAll(query, userId);
+  findAll(@Query() query: QueryMessageDto) {
+    return this.messagesService.findAll(query);
   }
 
   @Get(':id')

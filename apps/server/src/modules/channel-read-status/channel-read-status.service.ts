@@ -20,6 +20,29 @@ export class ChannelReadStatusService {
     });
   }
 
+  async getUnreadCount(userId: string, channelId: string): Promise<number> {
+    // Okunma durumu al
+    const status = await this.getStatus(userId, channelId);
+
+    if (!status || !status.lastReadMessage) {
+      return this.prisma.message.count({
+        where: { channelId },
+      });
+    }
+
+    const lastReadAt = status.lastReadMessage.createdAt;
+
+    // lastReadAt tarihinden sonra gelen mesajları say
+    return this.prisma.message.count({
+      where: {
+        channelId,
+        createdAt: {
+          gt: lastReadAt,
+        },
+      },
+    });
+  }
+
   async updateStatus(userId: string, channelId: string, lastReadMessageId: string) {
     return this.prisma.channelReadStatus.upsert({
       create: {

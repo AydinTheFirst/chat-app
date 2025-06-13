@@ -10,8 +10,6 @@ import { useAuth } from "~/hooks/use-auth";
 import { getChannelDisplayInfo } from "~/lib/utils";
 import { useActiveChannelStore } from "~/store/active-channel-store";
 import { useChannelStore } from "~/store/channel-store";
-import { useMessages } from "~/store/hooks";
-import { useReadStatusStore } from "~/store/read-status-store";
 
 import ChannelInfoModal from "./channel-info";
 import CreateInvite from "./create-invite";
@@ -21,19 +19,10 @@ import VirtualizedMessageList from "./virtualized-message-list";
 export default function Page() {
   const { channelId } = useParams<{ channelId: string }>();
   const channel = useChannelStore((s) => s.channels[channelId!]);
-  const updateReadStatus = useReadStatusStore((s) => s.updateStatus);
-  const channelMessages = useMessages(channelId!);
   const setActiveChannelId = useActiveChannelStore((s) => s.setActiveChannelId);
   const { user } = useAuth();
 
   const channelInfo = getChannelDisplayInfo(channel, user.id);
-
-  useEffect(() => {
-    if (!channel) return;
-    if (!channel.lastMessageId) return;
-    console.log("LastMessageId", channel.lastMessageId);
-    updateReadStatus(channel.id, channel.lastMessageId);
-  }, [channel, updateReadStatus]);
 
   useEffect(() => {
     setActiveChannelId(channelId!);
@@ -69,7 +58,7 @@ export default function Page() {
 
       <main className='flex-1 overflow-y-auto'>
         <div className='p-4'>
-          <VirtualizedMessageList messages={channelMessages} />
+          <VirtualizedMessageList channelId={channel.id} />
         </div>
       </main>
 

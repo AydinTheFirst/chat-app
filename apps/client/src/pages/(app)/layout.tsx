@@ -1,11 +1,5 @@
 import { cn } from "@heroui/react";
-import {
-  Channel,
-  Friendship,
-  Message,
-  plainToInstance,
-  User
-} from "dactoly.js";
+import { Channel, Friendship, plainToInstance, User } from "dactoly.js";
 import { useEffect } from "react";
 import { Outlet, useLoaderData, useLocation } from "react-router";
 
@@ -33,7 +27,7 @@ export const clientLoader = async () => {
 export default function Layout() {
   const { channels, friendships } = useLoaderData<typeof clientLoader>();
   const setChannels = useChannelStore((s) => s.setChannels);
-  const setMessages = useMessageStore((s) => s.setMessages);
+  const fetchMessages = useMessageStore((s) => s.fetchMessages);
   const setUsers = useUserStore((s) => s.setUsers);
   const setFriendships = useFriendshipStore((s) => s.setFriendships);
   const fetchReadStatus = useReadStatusStore((state) => state.fetchStatus);
@@ -41,17 +35,14 @@ export default function Layout() {
   useEffect(() => {
     setChannels(plainToInstance(Channel, channels));
     channels.forEach((channel) => {
-      if (channel.messages && channel.messages.length > 0) {
-        setMessages(channel.id, plainToInstance(Message, channel.messages));
-      }
-
       if (channel.users && channel.users.length > 0) {
         setUsers(channel.users.map((u) => plainToInstance(User, u)));
       }
 
       fetchReadStatus(channel.id);
+      fetchMessages(channel.id);
     });
-  }, [channels, setChannels, setMessages, setUsers, fetchReadStatus]);
+  }, [channels, setChannels, fetchMessages, setUsers, fetchReadStatus]);
 
   useEffect(() => {
     setFriendships(friendships.map((f) => plainToInstance(Friendship, f)));
