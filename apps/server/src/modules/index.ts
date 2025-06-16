@@ -1,3 +1,4 @@
+import { ApplicationsModule } from './applications/applications.module';
 import { AuthModule } from './auth';
 import { ChannelReadStatusModule } from './channel-read-status/channel-read-status.module';
 import { ChannelsModule } from './channels';
@@ -10,6 +11,7 @@ import { TokenModule } from './token/token.module';
 import { UsersModule } from './users';
 
 const Modules = {
+  ApplicationsModule,
   AuthModule,
   ChannelReadStatusModule,
   ChannelsModule,

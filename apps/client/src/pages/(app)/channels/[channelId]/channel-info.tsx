@@ -21,6 +21,8 @@ import { useAuth } from "~/hooks/use-auth";
 import { handleError, http } from "~/lib/http";
 import { getChannelDisplayInfo } from "~/lib/utils";
 
+import AddApplicationModal from "./add-application";
+
 interface ChannelInfoModalProps {
   channel: Channel;
 }
@@ -37,6 +39,7 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
 
   const leaveChannelModal = useDisclosure();
   const deleteChannelModal = useDisclosure();
+  const addApplicationModal = useDisclosure();
 
   const { user: currentUser } = useAuth();
 
@@ -188,6 +191,14 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
                 Delete Channel
               </Button>
             )}
+            {isOwner && (
+              <Button
+                onPress={addApplicationModal.onOpen}
+                variant='light'
+              >
+                Add Application
+              </Button>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -202,6 +213,11 @@ export default function ChannelInfoModal({ channel }: ChannelInfoModalProps) {
         message='Are you sure you want to delete this channel? This action cannot be undone.'
         onConfirm={deleteChannel}
         {...deleteChannelModal}
+      />
+
+      <AddApplicationModal
+        channelId={channel.id}
+        {...addApplicationModal}
       />
     </>
   );

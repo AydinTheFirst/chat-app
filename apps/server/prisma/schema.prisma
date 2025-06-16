@@ -14,10 +14,10 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  username String @unique @default(cuid())
-  email    String @unique
-  password String
+  id       String  @id @default(uuid())
+  username String  @unique
+  email    String? @unique
+  password String?
 
   roles UserRole[] @default([USER])
 
@@ -31,10 +31,33 @@ model User {
   friendRequestsReceived Friendship[]        @relation("FriendRequestsReceived")
   channelReadStatus      ChannelReadStatus[]
 
+  application       Application?  @relation("ApplicationBot")
+  ownedApplications Application[] @relation("OwnedApplications")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Application {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  iconUrl     String?
+  ownerId     String
+  owner       User    @relation("OwnedApplications", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  bot   User?   @relation("ApplicationBot", fields: [botId], references: [id])
+  botId String? @unique
+
+  clientId     String @unique @default(cuid())
+  clientSecret String @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("applications")
 }
 
 model Profile {
@@ -178,6 +201,7 @@ enum ChannelType {
 
 enum UserRole {
   USER
+  BOT
   ADMIN
 }
 

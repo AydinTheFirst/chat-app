@@ -13,13 +13,17 @@ import {
 import { GetUser } from '~/common/decorators';
 import { AuthGuard } from '~/common/guards';
 
+import { ApplicationsService } from '../applications/applications.service';
 import { CreateChannelDto, QueryChannelDto, UpdateChannelDto } from './channels.dto';
 import { ChannelsService } from './channels.service';
 
 @Controller('channels')
 @UseGuards(AuthGuard)
 export class ChannelsController {
-  constructor(private readonly channelsService: ChannelsService) {}
+  constructor(
+    private readonly channelsService: ChannelsService,
+    private readonly applicationsService: ApplicationsService,
+  ) {}
 
   @Post()
   create(@Body() createChannelDto: CreateChannelDto, @GetUser('id') userId: string) {
@@ -44,6 +48,16 @@ export class ChannelsController {
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.channelsService.findOne(id, userId);
+  }
+
+  @Post(':channelId/applications/:applicationId/join')
+  async joinApplicationToChannel(
+    @GetUser('id') userId: string,
+    @Param('channelId') channelId: string,
+    @Param('applicationId') applicationId: string,
+  ) {
+    const application = await this.applicationsService.findOne(userId, applicationId);
+    return this.channelsService.addApplicationToChannel(channelId, application.bot.id);
   }
 
   @Delete(':id/kick/:userId')

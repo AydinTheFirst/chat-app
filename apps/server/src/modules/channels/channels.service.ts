@@ -37,6 +37,49 @@ export class ChannelsService extends QueryService<Channel> {
     super(prisma.channel);
   }
 
+  async addApplicationToChannel(channelId: string, applicationUserId: string) {
+    // Kanal var mı kontrol et
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+    });
+
+    if (!channel) {
+      throw new NotFoundException('Channel not found');
+    }
+
+    // Kullanıcı zaten kanalda mı kontrolü (opsiyonel)
+    const isAlreadyInChannel = await this.prisma.channel.findFirst({
+      where: {
+        id: channelId,
+        users: { some: { id: applicationUserId } },
+      },
+    });
+
+    if (isAlreadyInChannel) {
+      throw new BadRequestException('Application is already in the channel');
+    }
+
+    // Kanal kullanıcılarına application user'ı ekle
+    const updatedChannel = await this.prisma.channel.update({
+      data: {
+        users: {
+          connect: { id: applicationUserId },
+        },
+      },
+      include: this.channelInclude,
+      where: { id: channelId },
+    });
+
+    await this.messagesService.sendSystemMessage(
+      updatedChannel.id,
+      `Application <@${applicationUserId}> joined the channel.`,
+    );
+
+    this.channelsGateway.emitChannelUpdate(updatedChannel);
+
+    return updatedChannel;
+  }
+
   async create(createChannelDto: CreateChannelDto, userId: string) {
     const channel = await this.prisma.channel.create({
       data: {

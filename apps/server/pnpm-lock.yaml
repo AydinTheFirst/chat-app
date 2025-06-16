@@ -86,6 +86,9 @@ importers:
       socket.io:
         specifier: ^4.8.1
         version: 4.8.1
+      ts-luxon:
+        specifier: ^6.1.0
+        version: 6.1.0
     devDependencies:
       '@eslint/js':
         specifier: ^9.28.0
@@ -4099,6 +4102,10 @@ packages:
     engines: {node: '>=18.12'}
     peerDependencies:
       typescript: '>=4.8.4'
+
+  ts-luxon@6.1.0:
+    resolution: {integrity: sha512-6Z0cBx984+G4mSyJAgMlrR/OlA2SuBnbwtx4gQ2OZ2G/Nd0OAPc5A8rz2W42wzb/p65rjjcmWMV/UbuOMPeiKw==}
+    engines: {node: '>=18'}
 
   tsconfig-paths-webpack-plugin@4.2.0:
     resolution: {integrity: sha512-zbem3rfRS8BgeNK50Zz5SIQgXzLafiHjOwUAvk/38/o1jHn/V5QAgVUcz884or7WYcPaH3N2CIfUc2u0ul7UcA==}
@@ -9247,6 +9254,8 @@ snapshots:
   ts-api-utils@2.1.0(typescript@5.8.3):
     dependencies:
       typescript: 5.8.3
+
+  ts-luxon@6.1.0: {}
 
   tsconfig-paths-webpack-plugin@4.2.0:
     dependencies:
