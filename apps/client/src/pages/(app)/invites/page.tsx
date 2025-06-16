@@ -1,11 +1,6 @@
 import { Channel, plainToInstance } from "dactoly.js";
 import { useEffect } from "react";
-import {
-  isRouteErrorResponse,
-  useLoaderData,
-  useNavigate,
-  useRouteError
-} from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
 
 import { http } from "~/lib/http";
 import { useChannelStore } from "~/store/channel-store";
@@ -20,45 +15,29 @@ export const clientLoader = async ({ request }: Route.ClientLoaderArgs) => {
     throw new Error("Code is required!");
   }
 
-  const { data: channel } = await http.post<Channel>(`/invites/${code}/join`);
+  try {
+    const { data: channel } = await http.post<Channel>(`/invites/${code}/join`);
 
-  if (!channel) {
-    throw new Error(`Channel with code ${code} not found`);
+    if (!channel) {
+      throw new Error(`Channel with code ${code} not found`);
+    }
+
+    return { channel };
+  } catch (error) {
+    return {
+      channel: null,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
   }
-
-  return { channel };
-};
-
-export const ErrorBoundary = () => {
-  const error = useRouteError();
-  let message = "An unexpected error occurred.";
-
-  if (isRouteErrorResponse(error)) {
-    message =
-      error.statusText || "An error occurred while processing your request.";
-  }
-
-  return (
-    <div className='flex h-screen items-center justify-center'>
-      <div className='text-center'>
-        <h1 className='text-2xl font-bold'>Error</h1>
-        <p className='mt-2'>{message}</p>
-      </div>
-    </div>
-  );
 };
 
 export default function Page() {
   const navigate = useNavigate();
   const addChannel = useChannelStore((s) => s.addChannel);
-  const { channel } = useLoaderData<typeof clientLoader>();
+  const { channel, error } = useLoaderData<typeof clientLoader>();
 
   useEffect(() => {
-    if (!channel) {
-      navigate("/channels");
-      return;
-    }
-
+    if (!channel) return;
     addChannel(plainToInstance(Channel, channel));
 
     navigate(`/channels/${channel.id}`);
@@ -66,10 +45,20 @@ export default function Page() {
 
   return (
     <div className='flex h-screen items-center justify-center'>
-      <div className='text-center'>
-        <h1 className='text-2xl font-bold'>Joining Channel...</h1>
-        <p className='mt-2'>You will be redirected shortly.</p>
-      </div>
+      {error && (
+        <div className='text-center text-red-500'>
+          <h1 className='text-2xl font-bold'>Error</h1>
+          <p className='mt-2'>{error}</p>
+          <p className='mt-4'>Please check the invite code and try again.</p>
+        </div>
+      )}
+
+      {channel && (
+        <div className='text-center'>
+          <h1 className='text-2xl font-bold'>Joining Channel...</h1>
+          <p className='mt-2'>You will be redirected shortly.</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -54,7 +54,10 @@ export default function MessageBubble({
 
   return (
     <div
-      className={cn("group flex items-start gap-3", !isSameAuthor && "mt-4")}
+      className={cn(
+        "group flex max-w-5xl items-start gap-3",
+        !isSameAuthor && "mt-4"
+      )}
     >
       {!isSameAuthor ? (
         <UserContextMenu user={message.author!}>
