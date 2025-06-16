@@ -1,5 +1,9 @@
+import { Type } from 'class-transformer';
+
 export class PaginatedResponseDto<T> {
-  data: T[];
+  @Type(() => Object)
+  items: T[];
+
   meta: {
     page: number;
     pageCount: number;

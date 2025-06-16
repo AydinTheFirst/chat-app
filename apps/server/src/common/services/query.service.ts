@@ -50,13 +50,13 @@ export class QueryService<T> {
       ...(customWhere || {}),
     };
 
-    const [data, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       this.prismaModel.findMany(baseQuery),
       this.prismaModel.count({ where: baseQuery.where }),
     ]);
 
     return {
-      data,
+      items,
       meta: {
         page: Math.floor((baseQuery.skip ?? 0) / (baseQuery.take ?? 10)) + 1,
         pageCount: Math.ceil(total / (baseQuery.take ?? 10)),

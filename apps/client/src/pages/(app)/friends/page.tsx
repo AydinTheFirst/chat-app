@@ -27,8 +27,8 @@ import { handleError, http } from "~/lib/http";
 import AddFriend from "./add-friend";
 
 export const clientLoader = async () => {
-  const friends = await dactoly.friendships.getAll();
-  const pending = await dactoly.friendships.getPending();
+  const friends = await dactoly.friendships.fetch();
+  const pending = await dactoly.friendships.fetchPending();
   return { friends, pending };
 };
 

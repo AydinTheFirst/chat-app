@@ -15,6 +15,7 @@
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "@swc/core": "^1.11.29",
     "@types/events": "^3.0.3",
     "@types/node": "^22.15.29",
     "eslint": "^9.28.0",

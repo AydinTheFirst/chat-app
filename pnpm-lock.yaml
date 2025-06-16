@@ -324,6 +324,9 @@ importers:
       '@eslint/js':
         specifier: ^9.28.0
         version: 9.28.0
+      '@swc/core':
+        specifier: ^1.11.29
+        version: 1.11.29(@swc/helpers@0.5.17)
       '@types/events':
         specifier: ^3.0.3
         version: 3.0.3

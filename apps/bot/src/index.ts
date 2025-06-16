@@ -13,13 +13,13 @@ client.ws.on('authSuccess', () => {
 
   client.ws.emit('updateStatus', 'online');
 
-  client.channels.getAll().then((channels) => {
+  client.channels.fetch().then((channels) => {
     channels.forEach((channel) => {
       client.ws.emit('join', channel.id);
     });
   });
 });
 
-client.ws.on('messageCreate', (msg) => handleMessage(client, msg));
+client.on('messageCreate', (msg) => handleMessage(client, msg));
 
 await client.login();

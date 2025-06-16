@@ -12,15 +12,9 @@ export default async function handleMessage(client: DactolyClient, message: Mess
 
   const command = args.shift()?.toLowerCase();
 
+  console.log('Client', message.client.user.username);
+
   if (command === 'ping') {
-    await client.messages.create({
-      channelId: message.channelId,
-      content: 'Pong!',
-    });
-  } else {
-    await client.messages.create({
-      channelId: message.channelId,
-      content: `Unknown command: ${command}`,
-    });
+    await message.reply('Pong!');
   }
 }

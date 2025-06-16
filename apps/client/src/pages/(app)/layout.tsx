@@ -19,8 +19,8 @@ import Sidebar from "./sidebar";
 const SIDEBAR_WIDTH = 320; // px
 
 export const clientLoader = async () => {
-  const channels = await dactoly.channels.getAll();
-  const friendships = await dactoly.friendships.getAll();
+  const channels = await dactoly.channels.fetch();
+  const friendships = await dactoly.friendships.fetch();
   return { channels, friendships };
 };
 

@@ -1,6 +1,8 @@
 import { instanceToPlain, plainToInstance, Type } from 'class-transformer';
 
-export abstract class BaseModel {
+import { getGlobalClient } from '~/utils/client-factory';
+
+export class BaseModel {
   @Type(() => Date)
   createdAt: Date;
 
@@ -9,13 +11,21 @@ export abstract class BaseModel {
   @Type(() => Date)
   updatedAt: Date;
 
-  static fromJSON<T>(this: new (...args: unknown[]) => T, obj: object): T {
-    return plainToInstance(this, obj, { excludeExtraneousValues: true });
+  get client() {
+    return getGlobalClient();
+  }
+
+  static fromJSON<T extends BaseModel>(this: new () => T, obj: unknown): T {
+    const instance = plainToInstance(this, obj, {
+      enableImplicitConversion: true,
+    });
+
+    Object.setPrototypeOf(instance, this.prototype);
+
+    return instance;
   }
 
   toJSON() {
     return instanceToPlain(this);
   }
-
-  // Gerekirse validate vb. methodlar eklenebilir
 }

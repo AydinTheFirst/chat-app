@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios';
 import { plainToClass } from 'class-transformer';
+import EventEmitter from 'events';
 
 import {
   ChannelsController,
@@ -10,10 +11,11 @@ import {
 import { DactolySocket } from '~/events';
 import { createInstance, createWebsocket } from '~/lib';
 import { DactolyClientConfig } from '~/types';
+import { setGlobalClient } from '~/utils/client-factory';
 
 import { ClientUser } from './models';
 
-export class DactolyClient {
+export class DactolyClient extends EventEmitter {
   public channels = new ChannelsController(this);
   public friendships = new FriendshipController(this);
   public messages = new MessagesController(this);
@@ -26,8 +28,10 @@ export class DactolyClient {
   public ws: DactolySocket;
 
   constructor(config: DactolyClientConfig) {
+    super();
     this.http = createInstance(config);
-    this.ws = createWebsocket(config);
+    this.ws = createWebsocket(this, config);
+    setGlobalClient(this);
   }
 
   public async login(): Promise<ClientUser> {

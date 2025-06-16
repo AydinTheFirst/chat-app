@@ -1,38 +1,35 @@
-import { DactolyClient } from '~/dactoly';
 import { CreateFriendshipDto } from '~/dtos';
 import { Friendship } from '~/models';
 
 import { BaseController } from './BaseController';
 
 export class FriendshipController extends BaseController {
-  constructor(private client: DactolyClient) {
-    super();
-  }
-
-  create(data: CreateFriendshipDto): Promise<Friendship> {
-    return this.transformSingle(this.client.http.post('/friendships', data), Friendship);
+  async create(data: CreateFriendshipDto): Promise<Friendship> {
+    const response = await this.client.http.post<unknown>('/friendships', data);
+    return Friendship.fromJSON(response.data);
   }
 
   async delete(friendshipId: string): Promise<void> {
     await this.client.http.delete(`/friendships/${friendshipId}`);
   }
 
-  getAll(): Promise<Friendship[]> {
-    return this.transformArray(this.client.http.get('/friendships'), Friendship);
+  async fetch(): Promise<Friendship[]> {
+    const response = await this.client.http.get<unknown[]>('/friendships');
+    return response.data.map((item) => Friendship.fromJSON(item));
   }
 
-  getById(friendshipId: string): Promise<Friendship> {
-    return this.transformSingle(this.client.http.get(`/friendships/${friendshipId}`), Friendship);
+  async fetchById(friendshipId: string): Promise<Friendship> {
+    const response = await this.client.http.get<unknown>(`/friendships/${friendshipId}`);
+    return Friendship.fromJSON(response.data);
   }
 
-  getPending(): Promise<Friendship[]> {
-    return this.transformArray(this.client.http.get('/friendships/pending'), Friendship);
+  async fetchPending(): Promise<Friendship[]> {
+    const response = await this.client.http.get<unknown[]>('/friendships/pending');
+    return response.data.map((item) => Friendship.fromJSON(item));
   }
 
-  update(friendshipId: string, data: CreateFriendshipDto): Promise<Friendship> {
-    return this.transformSingle(
-      this.client.http.patch(`/friendships/${friendshipId}`, data),
-      Friendship,
-    );
+  async update(friendshipId: string, data: CreateFriendshipDto): Promise<Friendship> {
+    const response = await this.client.http.patch<unknown>(`/friendships/${friendshipId}`, data);
+    return Friendship.fromJSON(response.data);
   }
 }

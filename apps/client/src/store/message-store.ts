@@ -36,18 +36,15 @@ export const useMessageStore = create<MessageStore>((set) => ({
 
   fetchMessages: async (channelId) => {
     try {
-      const messages = await dactoly.messages.getAll({ channelId, limit: 100 });
-      const messageInstances = messages.data.map((m) =>
-        plainToInstance(Message, m)
-      );
+      const messages = await dactoly.messages.fetch({ channelId, limit: 100 });
 
       set((state) => ({
         messages: {
           ...state.messages,
-          [channelId]: messageInstances
+          [channelId]: messages.items
         }
       }));
-      return messageInstances;
+      return messages.items;
     } catch (error) {
       console.error("Failed to fetch messages for channel:", channelId, error);
       return [];
