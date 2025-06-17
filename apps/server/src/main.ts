@@ -13,8 +13,6 @@ async function bootstrap() {
     cors: true,
   });
 
-  app.setGlobalPrefix('api');
-
   await swagger(app);
 
   app.useGlobalPipes(new CustomValidationPipe({ transform: true, whitelist: true }));

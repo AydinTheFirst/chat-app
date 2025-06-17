@@ -7,23 +7,23 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  type useDisclosure
+  type UseDisclosureProps
 } from "@heroui/react";
 
 import { StyledButton } from "./styled-button";
 
-interface ConfirmModalProps extends ReturnType<typeof useDisclosure> {
+interface ConfirmModalProps extends UseDisclosureProps {
   message: React.ReactNode;
   onConfirm: () => void;
 }
 
 export default function ConfirmModal(props: ConfirmModalProps) {
-  const { isOpen, message, onClose, onConfirm, onOpenChange } = props;
+  const { isOpen, message, onClose, onConfirm } = props;
 
   return (
     <Modal
       isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      onClose={onClose}
     >
       <ModalContent>
         <ModalHeader className='flex flex-col gap-1'>Are you sure?</ModalHeader>
@@ -42,7 +42,7 @@ export default function ConfirmModal(props: ConfirmModalProps) {
             color='primary'
             onPress={() => {
               onConfirm();
-              onClose();
+              if (onClose) onClose();
             }}
           >
             Confirm

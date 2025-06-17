@@ -1,20 +1,33 @@
 import { Type } from 'class-transformer';
 
-import { FriendRequestStatus } from '~/enums';
-
 import { BaseModel } from './BaseModel';
 import { User } from './User';
 
 export class Friendship extends BaseModel {
+  @Type(() => Date)
+  createdAt: Date;
+
   @Type(() => User)
-  from?: User;
+  from: User;
 
   fromId: string;
+  id: string;
 
-  status: FriendRequestStatus;
+  status: string;
 
   @Type(() => User)
-  to?: User;
+  to: User;
 
   toId: string;
+
+  @Type(() => Date)
+  updatedAt: Date;
+
+  async accept(): Promise<Friendship> {
+    return await this.client.friendships.update(this.id, { status: 'ACCEPTED' });
+  }
+
+  async reject(): Promise<Friendship> {
+    return await this.client.friendships.update(this.id, { status: 'REJECTED' });
+  }
 }

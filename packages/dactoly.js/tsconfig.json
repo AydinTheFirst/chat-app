@@ -8,6 +8,7 @@
     "declaration": true,
     "outDir": "dist",
     "skipLibCheck": true,
+    "types": ["vitest/globals", "node"],
 
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -18,5 +19,5 @@
       "~/*": ["src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

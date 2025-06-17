@@ -1,9 +1,8 @@
 import 'reflect-metadata';
 
-export { DactolyClient } from './dactoly';
-
+export * from './client';
+export * from './enums';
 export * from './models';
+export * from './services';
 
-export { DactolyError } from './utils/errors';
-
-export { classToPlain, instanceToInstance, plainToClass, plainToInstance } from 'class-transformer';
+export { instanceToPlain, plainToInstance } from 'class-transformer';

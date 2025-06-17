@@ -16,7 +16,9 @@
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
   "dependencies": {
-    "dactoly.js": "workspace:^"
+    "@google/generative-ai": "^0.24.1",
+    "dactoly.js": "workspace:^",
+    "typedi": "^0.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

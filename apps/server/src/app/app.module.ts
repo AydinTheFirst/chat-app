@@ -2,11 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AwsModule, NetgsmModule } from '~/common/modules';
-import { multerConfig, serveStaticConfig, throttlerConfig } from '~/config';
+import { multerConfig, throttlerConfig } from '~/config';
 import { PrismaModule } from '~/database';
 import { GatewaysModule } from '~/gateways/gateways.module';
 import modules from '~/modules';
@@ -24,7 +23,6 @@ import { AppController } from './app.controller';
     ScheduleModule.forRoot(),
     ConfigModule.forRoot(),
     ThrottlerModule.forRoot(throttlerConfig),
-    ServeStaticModule.forRoot(serveStaticConfig),
     MulterModule.register(multerConfig),
   ],
   providers: [],

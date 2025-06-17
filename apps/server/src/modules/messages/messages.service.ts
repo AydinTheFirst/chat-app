@@ -9,7 +9,7 @@ import { CreateMessageDto, QueryMessageDto, UpdateMessageDto } from './messages.
 @Injectable()
 export class MessagesService extends QueryService<Message> {
   messageInclude: Prisma.MessageInclude = {
-    author: { select: { id: true, profile: true, username: true } },
+    author: { select: { id: true, isBot: true, profile: true, username: true } },
     channel: { include: { lastMessage: true } },
   };
 

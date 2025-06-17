@@ -9,7 +9,10 @@
     "dev": "tsup --watch",
     "build": "tsup",
     "lint": "eslint . --fix",
-    "type-check": "tsc --noEmit"
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
   },
   "author": "AydinTheFirst",
   "license": "ISC",
@@ -23,14 +26,18 @@
     "globals": "^16.2.0",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1"
+    "typescript-eslint": "^8.33.1",
+    "vitest": "^3.2.1"
   },
   "dependencies": {
+    "@discordjs/collection": "^2.1.1",
     "axios": "^1.9.0",
     "class-transformer": "^0.5.1",
     "events": "^3.3.0",
     "reflect-metadata": "^0.2.2",
     "socket.io-client": "^4.8.1",
-    "strict-event-emitter": "^0.5.1"
+    "strict-event-emitter": "^0.5.1",
+    "typedi": "^0.10.0",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

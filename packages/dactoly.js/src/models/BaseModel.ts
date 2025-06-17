@@ -1,31 +1,20 @@
-import { instanceToPlain, plainToInstance, Type } from 'class-transformer';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 
-import { getGlobalClient } from '~/utils/client-factory';
+import { Client } from '~/client';
 
-export class BaseModel {
-  @Type(() => Date)
-  createdAt: Date;
-
-  id: string;
-
-  @Type(() => Date)
-  updatedAt: Date;
-
-  get client() {
-    return getGlobalClient();
+export abstract class BaseModel {
+  get client(): Client {
+    return Client.instance;
   }
 
-  static fromJSON<T extends BaseModel>(this: new () => T, obj: unknown): T {
-    const instance = plainToInstance(this, obj, {
-      enableImplicitConversion: true,
-    });
-
-    Object.setPrototypeOf(instance, this.prototype);
-
+  static fromJSON<T extends BaseModel>(this: new () => T, data: Partial<T>): T {
+    const instance = plainToInstance(this, data);
     return instance;
   }
 
-  toJSON() {
-    return instanceToPlain(this);
+  toJSON(): Record<string, unknown> {
+    return instanceToPlain(this, {
+      enableCircularCheck: true,
+    });
   }
 }

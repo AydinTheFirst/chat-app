@@ -109,6 +109,20 @@ export class FriendsService {
   }
 
   async isFriend(userId: string, targetUserId: string) {
+    // Önce her iki kullanıcıyı da çek, isBot bilgisini alalım
+    const users = await this.prisma.user.findMany({
+      select: { id: true, isBot: true },
+      where: {
+        id: { in: [userId, targetUserId] },
+      },
+    });
+
+    // Eğer userId veya targetUserId botsa true dön
+    if (users.some((u) => u.isBot)) {
+      return true;
+    }
+
+    // Değilse friendship kontrolü yap
     const friendship = await this.prisma.friendship.findFirst({
       where: {
         OR: [

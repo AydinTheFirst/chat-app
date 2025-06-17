@@ -1,75 +1,56 @@
-import { Message, plainToInstance } from "dactoly.js";
+import type { Message } from "dactoly.js";
+
 import { create } from "zustand";
 
-import { dactoly } from "~/lib/dactoly";
-
 interface MessageStore {
-  addMessage: (channelId: string, message: Message) => void;
-  deleteMessage: (channelId: string, messageId: string) => void;
-  fetchMessages: (channelId: string) => Promise<Message[]>;
-  messages: Record<string, Message[]>;
-  setMessages: (channelId: string, messages: Message[]) => void;
-  updateMessage: (channelId: string, updatedMessage: Message) => void;
+  addMessage: (message: Message) => void;
+
+  clearMessages: () => void;
+  deleteMessage: (messageId: string) => void;
+  getMessagesArray: () => Message[];
+  messages: Record<string, Message>;
+
+  updateMessage: (message: Message) => void;
 }
 
-export const useMessageStore = create<MessageStore>((set) => ({
-  addMessage: (channelId, message) =>
+const useMessageStore = create<MessageStore>((set, get) => ({
+  addMessage: (message) =>
     set((state) => ({
       messages: {
         ...state.messages,
-        [channelId]: [
-          ...(state.messages[channelId] || []),
-          plainToInstance(Message, message)
-        ]
+        [message.id]: message
       }
     })),
 
-  deleteMessage: (channelId, messageId) =>
-    set((state) => ({
-      messages: {
-        ...state.messages,
-        [channelId]: (state.messages[channelId] || []).filter(
-          (m) => m.id !== messageId
-        )
-      }
-    })),
+  clearMessages: () => set({ messages: {} }),
 
-  fetchMessages: async (channelId) => {
-    try {
-      const messages = await dactoly.messages.fetch({ channelId, limit: 100 });
+  deleteMessage: (messageId) =>
+    set((state) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [messageId]: _, ...rest } = state.messages;
+      return { messages: rest };
+    }),
 
-      set((state) => ({
-        messages: {
-          ...state.messages,
-          [channelId]: messages.items
-        }
-      }));
-      return messages.items;
-    } catch (error) {
-      console.error("Failed to fetch messages for channel:", channelId, error);
-      return [];
-    }
+  getMessagesArray: () => {
+    const messagesObj = get().messages;
+    return Object.values(messagesObj).sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
   },
 
   messages: {},
 
-  setMessages: (channelId, messages) =>
-    set((state) => ({
-      messages: {
-        ...state.messages,
-        [channelId]: messages.map((m) => plainToInstance(Message, m))
-      }
-    })),
-
-  updateMessage: (channelId, updatedMessage) =>
-    set((state) => ({
-      messages: {
-        ...state.messages,
-        [channelId]: (state.messages[channelId] || []).map((m) =>
-          m.id === updatedMessage.id
-            ? plainToInstance(Message, updatedMessage)
-            : m
-        )
-      }
-    }))
+  updateMessage: (message) =>
+    set((state) => {
+      if (!state.messages[message.id]) return state; // güncellenecek mesaj yoksa dokunma
+      return {
+        messages: {
+          ...state.messages,
+          [message.id]: message
+        }
+      };
+    })
 }));
+
+export default useMessageStore;

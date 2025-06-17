@@ -1,9 +1,10 @@
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import onedark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark";
 import remarkGfm from "remark-gfm";
 
-export function MarkdownRenderer({ children }: React.PropsWithChildren) {
+function MarkdownRenderer({ children }: React.PropsWithChildren) {
   return (
     <ReactMarkdown
       components={{
@@ -30,3 +31,5 @@ export function MarkdownRenderer({ children }: React.PropsWithChildren) {
     </ReactMarkdown>
   );
 }
+
+export default memo(MarkdownRenderer);

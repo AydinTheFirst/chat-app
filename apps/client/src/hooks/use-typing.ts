@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { dactoly } from "~/lib/dactoly";
+import dactoly from "~/lib/dactoly";
 
 export function useTyping(channelId: string) {
   const [isTyping, setIsTyping] = useState(false);

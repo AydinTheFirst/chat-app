@@ -10,10 +10,18 @@ export class Profile extends BaseModel {
 
   bio?: string;
 
+  @Type(() => Date)
+  createdAt: Date;
+
   displayName: string;
 
+  id: string;
+
+  @Type(() => Date)
+  updatedAt: Date;
+
   @Type(() => User)
-  user?: User;
+  user: User;
 
   userId: string;
 

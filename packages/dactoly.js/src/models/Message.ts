@@ -1,3 +1,5 @@
+import { Type } from 'class-transformer';
+
 import { MessageType } from '~/enums';
 
 import { BaseModel } from './BaseModel';
@@ -5,30 +7,39 @@ import { Channel } from './Channel';
 import { User } from './User';
 
 export class Message extends BaseModel {
+  @Type(() => User)
   author?: User;
 
-  authorId: string;
+  authorId?: string;
 
-  channel?: Channel;
+  @Type(() => Channel)
+  channel: Channel;
 
   channelId: string;
 
+  @Type(() => Channel)
+  channelLastMessage?: Channel;
+
   content: string;
+
+  createdAt: Date;
 
   deletedAt?: Date;
 
   editedAt?: Date;
 
+  id: string;
+
   type: MessageType;
 
-  get client() {
-    return super.client;
+  updatedAt: Date;
+
+  async delete(): Promise<void> {
+    await this.client.messages.delete(this.id);
   }
 
-  reply(content: string) {
-    return super.client.messages.create({
-      channelId: this.channelId,
-      content,
-    });
+  async edit(content: string): Promise<Message> {
+    const updated = await this.client.messages.update(this.id, { content });
+    return updated;
   }
 }

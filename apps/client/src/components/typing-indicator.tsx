@@ -1,6 +1,7 @@
 import type { User } from "dactoly.js";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { create } from "zustand";
 
 import { useAuth } from "~/hooks/use-auth";
 import { useDactoly } from "~/hooks/use-dactoly";
@@ -14,24 +15,35 @@ interface TypingPayload {
   user: User;
 }
 
+interface TypingStore {
+  addUserTyping: (user: User) => void;
+  removeUserTyping: (user: User) => void;
+  typingUsers: Record<string, User>;
+}
+
+const useTypingStore = create<TypingStore>((set) => ({
+  addUserTyping: (user) =>
+    set((state) => {
+      if (state.typingUsers[user.id]) return state; // User already typing
+      return { typingUsers: { ...state.typingUsers, [user.id]: user } };
+    }),
+  removeUserTyping: (user) =>
+    set((state) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [user.id]: _, ...rest } = state.typingUsers;
+      return { typingUsers: rest };
+    }),
+  typingUsers: {}
+}));
+
 export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
-  const [typingUsers, setTypingUsers] = useState<User[]>([]);
-  const { dactolyClient } = useDactoly();
+  const { dactoly } = useDactoly();
   const { user: currentUser } = useAuth();
 
-  const addUserTyping = (user: User) => {
-    setTypingUsers((prev) => {
-      if (prev.some((u) => u.id === user.id)) return prev;
-      return [...prev, user];
-    });
-  };
-
-  const removeUserTyping = (user: User) => {
-    setTypingUsers((prev) => prev.filter((u) => u.id !== user.id));
-  };
+  const { addUserTyping, removeUserTyping, typingUsers } = useTypingStore();
 
   useEffect(() => {
-    dactolyClient.ws.on("startTyping", (payload: TypingPayload) => {
+    dactoly.ws.on("startTyping", (payload: TypingPayload) => {
       if (payload.user.id === currentUser.id) return;
 
       if (payload.channelId === channelId) {
@@ -39,7 +51,7 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
       }
     });
 
-    dactolyClient.ws.on("stopTyping", (payload: TypingPayload) => {
+    dactoly.ws.on("stopTyping", (payload: TypingPayload) => {
       if (payload.user.id === currentUser.id) return;
 
       if (payload.channelId === channelId) {
@@ -48,18 +60,21 @@ export default function TypingIndicator({ channelId }: TypingIndicatorProps) {
     });
 
     return () => {
-      dactolyClient.ws.off("startTyping");
-      dactolyClient.ws.off("stopTyping");
+      dactoly.ws.off("startTyping");
+      dactoly.ws.off("stopTyping");
     };
-  }, [dactolyClient, channelId, currentUser]);
+  }, [dactoly, channelId, currentUser, addUserTyping, removeUserTyping]);
 
-  if (typingUsers.length === 0) {
-    return;
-  }
+  const typingUsersArray = Object.values(typingUsers);
+
+  if (typingUsersArray.length === 0) return <div className='h-4' />;
 
   return (
-    <div className='animate-appearance-in absolute bottom-0 bg-gray-100 p-2 text-sm text-gray-500'>
-      {typingUsers.map((u) => u.profile?.displayName).join(", ")} typing...
+    <div className='flex'>
+      <p className='text-xs'>
+        {typingUsersArray.map((u) => u.profile?.displayName).join(", ")} is
+        typing...
+      </p>
     </div>
   );
 }

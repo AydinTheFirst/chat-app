@@ -33,6 +33,7 @@ model User {
 
   application       Application?  @relation("ApplicationBot")
   ownedApplications Application[] @relation("OwnedApplications")
+  isBot             Boolean       @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

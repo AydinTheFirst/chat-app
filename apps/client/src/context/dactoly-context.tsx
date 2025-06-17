@@ -1,50 +1,46 @@
-import type { DactolyClient } from "dactoly.js";
+import type { Client } from "dactoly.js";
 
 import React from "react";
 
-import { dactoly } from "~/lib/dactoly";
-import { initSocketEvents } from "~/lib/ws-handler";
+import dactoly from "~/lib/dactoly";
 
 interface DactolyContextType {
-  dactolyClient: DactolyClient;
+  dactoly: Client;
 }
 
-export const DactolyContext = React.createContext<DactolyContextType | null>(
-  null
-);
+export const DactolyContext = React.createContext<
+  DactolyContextType | undefined
+>(undefined);
 
-export const DactolyProvider = ({
-  children
-}: {
-  children: React.ReactNode;
-}) => {
-  const dactolyClientRef = React.useRef<DactolyClient>(dactoly);
+export const DactolyProvider = ({ children }: React.PropsWithChildren) => {
+  const dactolyClient = React.useRef(dactoly);
 
   React.useEffect(() => {
-    const client = dactolyClientRef.current;
-    const socket = client.ws;
+    if (!dactolyClient.current) return;
+
+    const socket = dactolyClient.current.ws;
+
+    socket.on("authSuccess", () => {
+      console.log("WebSocket authentication successful");
+    });
+
+    socket.onAny((event, ...args) => {
+      console.log(`WebSocket event: ${event}`, args);
+    });
+
+    socket.onAnyOutgoing((event, ...args) => {
+      console.log(`WebSocket outgoing event: ${event}`, args);
+    });
 
     socket.connect();
 
-    socket.on("connect", () => {
-      initSocketEvents();
-    });
-
-    socket.on("authSuccess", () => {
-      socket.emit("updateStatus", "online");
-    });
-
     return () => {
-      socket.off("authSuccess");
-      socket.offAny();
       socket.disconnect();
     };
   }, []);
 
   return (
-    <DactolyContext.Provider
-      value={{ dactolyClient: dactolyClientRef.current }}
-    >
+    <DactolyContext.Provider value={{ dactoly: dactolyClient.current }}>
       {children}
     </DactolyContext.Provider>
   );
