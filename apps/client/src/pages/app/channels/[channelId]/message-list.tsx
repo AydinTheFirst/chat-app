@@ -45,11 +45,24 @@ export default function MessageList({ messages: initialMessages }: Props) {
     );
   }, [messages]);
 
+  if (sortedMessages.length === 0) {
+    return (
+      <span className='block text-center text-sm text-gray-500'>
+        No messages yet. Start the conversation!
+      </span>
+    );
+  }
+
   return (
-    <ul className='grid gap-3'>
+    <ul className='grid gap-1'>
       {sortedMessages.map((message) => (
         <li key={message.id}>
-          <MessageItem message={message} />
+          <MessageItem
+            message={message}
+            previousMessage={
+              sortedMessages[sortedMessages.indexOf(message) - 1]
+            }
+          />
         </li>
       ))}
       <div ref={bottomRef} />

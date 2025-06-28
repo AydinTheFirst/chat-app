@@ -10,23 +10,23 @@ interface UserStatusProps {
 }
 
 export default function UserStatus({ userId }: UserStatusProps) {
-  const { dactolyClient } = useDactoly();
+  const { dactoly } = useDactoly();
   const [status, setStatus] = useState<UserStatus>("offline");
 
   useEffect(() => {
-    dactolyClient.ws.emit("subscribeStatus", userId);
+    dactoly.ws.emit("subscribeStatus", userId);
 
-    dactolyClient.ws.on("userStatus", (data) => {
+    dactoly.ws.on("userStatus", (data) => {
       if (data.userId === userId) {
         setStatus(data.status);
       }
     });
 
     return () => {
-      dactolyClient.ws.off("userStatus");
-      dactolyClient.ws.emit("unsubscribeStatus", userId);
+      dactoly.ws.off("userStatus");
+      dactoly.ws.emit("unsubscribeStatus", userId);
     };
-  }, [dactolyClient, userId]);
+  }, [dactoly, userId]);
 
   const indicatorColor = {
     idle: "bg-yellow-500",

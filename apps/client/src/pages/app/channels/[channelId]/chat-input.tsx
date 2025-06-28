@@ -44,7 +44,7 @@ export default function ChatInput({ channelId }: ChatInputProps) {
 
   return (
     <div className='container'>
-      <div className='bg-content2 mb-2 flex items-center gap-3 rounded-lg px-2'>
+      <div className='bg-content3 mb-2 flex items-center gap-3 rounded-lg px-2'>
         <Button
           isIconOnly
           onPress={() => toast.info("This feature is not implemented yet.")}

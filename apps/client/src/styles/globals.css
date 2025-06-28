@@ -9,9 +9,13 @@ body {
 }
 
 .dark {
-  background-color: #161717;
+  background-color: #212121;
 }
 
 .center {
   @apply flex items-center justify-center;
+}
+
+.text-muted {
+  @apply text-gray-500 dark:text-gray-400;
 }

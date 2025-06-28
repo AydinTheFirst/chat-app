@@ -28,7 +28,14 @@ export default async function handleMessage(message: Message) {
   }
 
   message.channel?.startTyping();
-  const response = await gemini.chat(message.authorId as string, message.content);
-  await message.channel?.send(response);
+
+  try {
+    const response = await gemini.chat(message.authorId as string, message.content);
+    await message.channel?.send(response);
+  } catch (error) {
+    console.error('Error processing message:', error);
+    await message.channel?.send('An error occurred while processing your request.');
+  }
+
   message.channel?.stopTyping();
 }

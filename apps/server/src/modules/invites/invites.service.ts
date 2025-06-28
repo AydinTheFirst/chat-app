@@ -53,11 +53,11 @@ export class InvitesService {
     });
 
     if (isMember) {
-      return invite.channel;
+      return invite;
     }
 
     await this.channelsService.joinChannel(invite.channelId, userId);
 
-    return invite.channel;
+    return invite;
   }
 }

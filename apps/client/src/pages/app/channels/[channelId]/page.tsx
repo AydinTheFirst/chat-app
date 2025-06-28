@@ -1,14 +1,17 @@
-import { Button, Input, Navbar, NavbarContent } from "@heroui/react";
-import { LucidePlus, LucideSearch } from "lucide-react";
+import { Navbar, NavbarContent, NavbarItem } from "@heroui/react";
 import { useEffect } from "react";
 import { type ClientLoaderFunctionArgs, useLoaderData } from "react-router";
 
 import SidebarToggler from "~/components/sidebar-toggler";
+import { useAuth } from "~/hooks/use-auth";
+import useChannelInfo from "~/hooks/use-channel-info";
 import { useDactoly } from "~/hooks/use-dactoly";
 import { useSidebar } from "~/hooks/use-sidebar";
 import dactoly from "~/lib/dactoly";
 
+import ChannelInfoModal from "./channel-info";
 import ChatInput from "./chat-input";
+import InviteUsersModal from "./invite-users";
 import MessageList from "./message-list";
 
 export const clientLoader = async ({ params }: ClientLoaderFunctionArgs) => {
@@ -33,6 +36,8 @@ export default function Channel() {
   const { isOpen } = useSidebar();
   const { channel, messages } = useLoaderData<typeof clientLoader>();
   const { dactoly } = useDactoly();
+  const { user } = useAuth();
+  const channelInfo = useChannelInfo({ channel, user });
 
   useEffect(() => {
     const socket = dactoly.ws;
@@ -45,32 +50,26 @@ export default function Channel() {
   });
 
   return (
-    <div className='flex h-full flex-col gap-3'>
+    <div className='flex h-full flex-col gap-5'>
       <Navbar
         className='bg-transparent'
+        isBordered
         maxWidth='full'
       >
         <NavbarContent justify='start'>
           {!isOpen && <SidebarToggler />}
-          <h1 className='truncate text-lg font-semibold'>#{channel.name}</h1>
+          <h1 className='block truncate text-lg font-semibold'>
+            {channel.type === "DM" ? "@" : "#"}
+            {channelInfo.displayName}
+          </h1>
         </NavbarContent>
         <NavbarContent justify='end'>
-          <Button
-            isIconOnly
-            variant='light'
-          >
-            <LucidePlus size={20} />
-          </Button>
-          <Input
-            className='max-w-xs'
-            endContent={
-              <LucideSearch
-                className='text-gray-400'
-                size={20}
-              />
-            }
-            placeholder='Search...'
-          />
+          <NavbarItem>
+            <ChannelInfoModal channel={channel} />
+          </NavbarItem>
+          <NavbarItem>
+            <InviteUsersModal channel={channel} />
+          </NavbarItem>
         </NavbarContent>
       </Navbar>
       <main className='flex-1 overflow-auto'>

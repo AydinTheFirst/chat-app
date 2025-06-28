@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import { DactolySocket } from '~/events';
 import { ChannelService, FriendshipService, MessageService, UserService } from '~/services';
 import { ChannelReadStatusService } from '~/services/ChannelReadStatusService';
+import { InvitesService } from '~/services/InvitesService';
 
 interface ClientOptions {
   baseUrl?: string;
@@ -24,6 +25,7 @@ export class Client {
   public friendships: FriendshipService;
   public users: UserService;
   public readStatus: ChannelReadStatusService;
+  public invites: InvitesService;
 
   constructor(options: ClientOptions) {
     if (!options.baseUrl) {
@@ -51,6 +53,7 @@ export class Client {
     this.friendships = new FriendshipService(this);
     this.users = new UserService(this);
     this.readStatus = new ChannelReadStatusService(this);
+    this.invites = new InvitesService(this);
 
     Client.instance = this;
   }

@@ -1,8 +1,12 @@
-import { Button } from "@heroui/react";
+import { Button, type ButtonProps } from "@heroui/react";
 import { LucideMoon, LucideSun } from "lucide-react";
 import { useTheme } from "next-themes";
 
-export default function ToggleTheme() {
+interface ToggleThemeProps extends ButtonProps {
+  ariaLabel?: string;
+}
+
+export default function ToggleTheme(props: ToggleThemeProps) {
   const { setTheme, theme } = useTheme();
 
   const toggleTheme = () => {
@@ -17,8 +21,9 @@ export default function ToggleTheme() {
       isIconOnly
       onPress={toggleTheme}
       variant='light'
+      {...props}
     >
-      <Icon />
+      <Icon size={20} />
     </Button>
   );
 }
